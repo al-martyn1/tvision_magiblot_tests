@@ -1,0 +1,71 @@
+{
+    "version": "2.0.0",
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "cmd.exe",
+                "args": [
+                    "/d", "/c"
+                ]
+            }
+        }
+    },
+    "tasks": [
+      {
+        "type": "cmake",
+        "label": "FW: build",
+        "command": "build",
+        "targets": [
+          "all"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
+        "detail": "FW build task"
+      },
+      {
+        "type": "shell",
+        "label": "FW: flash-openocd",
+        "command": "openocd",
+        "dependsOn": "FW: build",
+        "problemMatcher": [],
+        "options": {
+          "cwd": "${command:cmake.buildDirectory}"
+        },
+        "args": [
+          "-f",
+          "interface/stlink.cfg",
+          "-f",
+          "target/stm32f4x.cfg",
+          "-c",
+          "'program ${command:cmake.buildTargetName}.hex verify reset exit'"
+        ],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        },
+        "detail": "Builds project, connects to the openOCD server and flashes new firmware."
+      },
+      {
+        "type": "cmake",
+        "label": "FW: clean",
+        "command": "clean",
+        "problemMatcher": [],
+        "detail": "FW clean task"
+      },
+      {
+        "type": "cmake",
+        "label": "FW: clean rebuild",
+        "command": "cleanRebuild",
+        "targets": [
+          "all"
+        ],
+        "group": "build",
+        "problemMatcher": [],
+        "detail": "FW clean rebuild task"
+      }
+    ],
+    "version": "2.0.0"
+}

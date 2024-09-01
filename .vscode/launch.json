@@ -1,0 +1,107 @@
+{
+  "configurations" : 
+  [
+    {
+      "name": "Win32 Debug",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${command:cmake.launchTargetPath}",
+      "cwd": "${workspaceFolder}",
+      "args": [],
+      "stopAtEntry": false,
+      "environment": [],
+      "externalConsole": true,
+      "avoidWindowsConsoleRedirection":false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "preLaunchTask": "FW: build",
+      "presentation" : {
+          "group": "win32"
+      }
+    },
+    {
+      "name" : "Cortex Debug (Flash-n-Launch)",
+      "type" : "cortex-debug",
+      "device" : "STM32F429II",
+      "svdFile" : "${workspaceRoot}/src/scripts/STM32F429.svd",
+      "servertype" : "openocd",
+      "configFiles": [ "interface/stlink.cfg", "target/stm32f4x.cfg" ],
+      "openOCDPreConfigLaunchCommands": ["adapter speed 1800"],
+      "openOCDLaunchCommands": [
+        "adapter speed 1800"
+      ],
+      "cwd" : "${workspaceFolder}",
+      "executable" : "${command:cmake.buildDirectory}/${command:cmake.buildTargetName}.elf",
+      "request" : "launch",
+      "runToEntryPoint" : "main",
+      "showDevDebugOutput" : "raw",
+      "preLaunchTask" : "FW: build",
+      "preLaunchCommands": [
+          "set remote hardware-breakpoint-limit 6",
+          "set remote hardware-watchpoint-limit 4",
+          "enable breakpoint",
+          "monitor halt",
+          "monitor reset init",
+          "load",
+          "monitor halt",
+          "monitor reset init"
+      ],
+      "preRestartCommands" : [
+          "set remote hardware-breakpoint-limit 6",
+          "set remote hardware-watchpoint-limit 4",
+          "enable breakpoint",
+          "monitor halt",
+          "monitor reset init"
+      ],
+      "presentation" : {
+          "group": "stm32"
+      }
+    },
+    {
+      "name" : "Cortex Debug (Launch)",
+      "type" : "cortex-debug",
+      "device" : "STM32F429II",
+      "svdFile" : "${workspaceRoot}/src/scripts/STM32F429.svd",
+      "servertype" : "openocd",
+      "configFiles": [ "interface/stlink.cfg", "target/stm32f4x.cfg" ],
+      "openOCDPreConfigLaunchCommands": ["adapter speed 1800"],
+      "openOCDLaunchCommands": [
+        "adapter speed 1800"
+      ],
+      "cwd" : "${workspaceFolder}",
+      "executable" : "${command:cmake.buildDirectory}/${command:cmake.buildTargetName}.elf",
+      "request" : "launch",
+      "runToEntryPoint" : "main",
+      "showDevDebugOutput" : "raw",
+      "preLaunchCommands": [
+          "set remote hardware-breakpoint-limit 6",
+          "set remote hardware-watchpoint-limit 4",
+          "enable breakpoint",
+          "monitor reset"
+      ],
+      "preRestartCommands": [
+          "enable breakpoint",
+          "monitor reset init"
+      ],
+      "presentation" : {
+          "group": "stm32"
+      }
+    },
+    {
+      "name" : "Cortex Debug (Attach, Non-complete)",
+      "type" : "cortex-debug",
+      "device" : "STM32F429II",
+      "svdFile" : "${workspaceRoot}/src/scripts/STM32F429.svd",
+      "servertype" : "openocd",
+      "configFiles": [ "interface/stlink.cfg", "target/stm32f4x.cfg" ],
+      "cwd" : "${workspaceFolder}",
+      "executable" : "${command:cmake.buildDirectory}/${command:cmake.buildTargetName}.elf",
+      "request" : "attach",
+      "showDevDebugOutput" : "raw",
+      "presentation" : {
+          "group": "stm32"
+      }
+    }
+  ],
+  "version" : "0.2.0"
+}
