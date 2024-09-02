@@ -19,13 +19,10 @@ include(.cmake/common.cmake)
 # include(.cmake/framework.cmake)
 
 # Настройка TurboVision под терминал
-#if(STM32)
-#    set(TV_TERMINAL 1)
-#endif()
-
 if(STM32)
-    set(TV_BARE_METAL 1)
-    set(TV_TERMINAL 1)
+    set(TV_BARE_METAL ON)
+    set(TV_NO_NCURSES ON)
+    set(TV_TERMINAL ON)
     set(TV_NO_FILESYSTEM 1)
     set(TV_NO_LOCALE_SUPPORT 1)
     fw_stm32_setup_mcu_options()
@@ -33,6 +30,14 @@ if(STM32)
     set(TV_MCU_COMPILE_OPTIONS     ${MCU_COMPILE_OPTIONS})
     set(TV_MCU_LINK_OPTIONS        ${MCU_LINK_OPTIONS})
 endif()
+
+set(TV_REDUCE_APP_SIZE ON)
+
+# Disable some warnings in TurboVision
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options("-Wno-psabi")
+endif() # GNU
+
 
 
 # Подсасываем библиотеки
@@ -49,16 +54,6 @@ set(CMAKE_C_EXTENSIONS Off)
 set(CMAKE_CXX_EXTENSIONS Off)
 
 
-if(STM32)
-    set(TV_NO_NCURSES ON)
-    set(TV_BARE_METAL ON)
-endif()  # STM32
-
-set(TV_REDUCE_APP_SIZE ON)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options("-Wno-psabi")
-endif() # GNU
 
 
 
