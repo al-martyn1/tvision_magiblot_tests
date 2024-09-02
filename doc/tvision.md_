@@ -4,7 +4,53 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 # Классы и структуры
 
-## class DisplayStrategy
+#//---------------------------------------------
+
+#//---------------------------------------------
+
+## InputStrategy и его производные
+
+### class EventSource
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`class EventSource`-{}
+
+Базовый класс для InputStrategy и LinuxConsoleInput.
+
+
+### class InputStrategy : public EventSource
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class InputStrategy : public EventSource`-{}
+
+Базовый класс для конкретных реализаций InputStrategy.
+
+
+### class GpmInput final : public InputStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/gpminput.h#`class GpmInput final : public InputStrategy`-{}
+
+
+### class NcursesInput : public InputStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ncursinp.h#`class NcursesInput : public InputStrategy`-{}
+
+
+### class Win32Input final : public InputStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32Input final : public InputStrategy`-{}
+
+
+### struct LinuxConsoleInput final : public EventSource
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/linuxcon.h#`struct LinuxConsoleInput final : public EventSource`-{}
+
+Использует InputStrategy.
+
+
+#//---------------------------------------------
+
+## DisplayStrategy и его производные
+
+### class DisplayStrategy
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`-{}
 
@@ -17,20 +63,75 @@ Title: Заметки по портированию TurboVision (magiblot) на 
   - Предоставляет низкоуровневые сервисы по установке размера курсора, перемещению позиции вывода, и по сбросу экранного буфера
 
 
+### class TerminalDisplay : public DisplayStrategy
 
-## class InputStrategy : public EventSource
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class InputStrategy : public EventSource`-{}
-
-Базовый класс для конкретных реализаций InputStrategy.
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/termdisp.h#`class TerminalDisplay : public DisplayStrategy`-{}
 
 
-## struct ConsoleStrategy
+### class AnsiDisplayBase
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`class AnsiDisplayBase`-{}
+
+
+### template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay`-{}
+
+The base class of AnsiDisplay must be a derived of TerminalDisplay.
+
+
+### class NcursesDisplay : public TerminalDisplay
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ncurdisp.h#`class NcursesDisplay : public TerminalDisplay`-{}
+
+
+### class Win32Display : public TerminalDisplay
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32Display : public TerminalDisplay`-{}
+
+
+#//---------------------------------------------
+
+## ConsoleStrategy и его производные
+
+### struct ConsoleStrategy
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`struct ConsoleStrategy`-{}
 
 Базовый класс для конкретных реализаций ConsoleStrategy.
 
+
+### class LinuxConsoleStrategy : public ConsoleStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/linuxcon.h#`class LinuxConsoleStrategy : public ConsoleStrategy`-{}
+
+
+### class Win32ConsoleStrategy final : public ConsoleStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32ConsoleStrategy final : public ConsoleStrategy`-{}
+
+
+Win32ConsoleStrategy работает через AnsiDisplay, если система это поддерживает:
+
+win32con.cpp:103 (ф-я Win32ConsoleStrategy::create())
+'''cpp
+    auto &display = supportsVT ? *new AnsiDisplay<Win32Display>(io)
+                               : *new Win32Display(io);
+'''
+
+
+### class UnixConsoleStrategy : public ConsoleStrategy
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/unixcon.h#`class UnixConsoleStrategy : public ConsoleStrategy`-{}
+
+
+### Platform::createConsole() - создание консоли
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/platfcon.cpp#`ConsoleStrategy &Platform::createConsole() noexcept`-{}
+
+
+
+#//---------------------------------------------
 
 ## class Platform
 
@@ -43,64 +144,6 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/stdioctl.h#`class StdioCtl final`-{}
 
-
-
-## struct LinuxConsoleInput final : public EventSource
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/linuxcon.h#`struct LinuxConsoleInput final : public EventSource`-{}
-
-
-## class LinuxConsoleStrategy : public ConsoleStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/linuxcon.h#`class LinuxConsoleStrategy : public ConsoleStrategy`-{}
-
-
-## class Win32Input final : public InputStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32Input final : public InputStrategy`-{}
-
-
-## class Win32Display : public TerminalDisplay
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32Display : public TerminalDisplay`-{}
-
-
-## class Win32ConsoleStrategy final : public ConsoleStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32ConsoleStrategy final : public ConsoleStrategy`-{}
-
-
-## class UnixConsoleStrategy : public ConsoleStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/unixcon.h#`class UnixConsoleStrategy : public ConsoleStrategy`-{}
-
-
-## class NcursesDisplay : public TerminalDisplay
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ncurdisp.h#`class NcursesDisplay : public TerminalDisplay`-{}
-
-
-## class NcursesInput : public InputStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ncursinp.h#`class NcursesInput : public InputStrategy`-{}
-
-
-
-## class AnsiDisplayBase
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`class AnsiDisplayBase`-{}
-
-
-## template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay`-{}
-
-The base class of AnsiDisplay must be a derived of TerminalDisplay.
-
-
-## class TerminalDisplay : public DisplayStrategy
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/termdisp.h#`class TerminalDisplay : public DisplayStrategy`-{}
 
 
 ## class DisplayBuffer
@@ -122,6 +165,7 @@ The base class of AnsiDisplay must be a derived of TerminalDisplay.
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/terminal.h#`class InputGetter`-{}
 
+
 ## struct CSIData
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/terminal.h#`struct CSIData`-{}
@@ -133,6 +177,13 @@ The base class of AnsiDisplay must be a derived of TerminalDisplay.
 
 
 #/*
+
+
+class DisplayBuffer
+{
+    friend FlushScreenAlgorithm;
+
+
 ## 
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/terminal.h#``-{}
