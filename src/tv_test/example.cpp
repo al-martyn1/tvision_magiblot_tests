@@ -245,7 +245,10 @@ int main()
  	 // endState = 0;
 
      //while(tvPollAppExecute()==0) {}
-     myApplication.run();
+     //myApplication.run();
+     myApplication.executeInit();
+     while(myApplication.executePoll()==0)
+     {}
 
  	 // if(title) {
  		// TScreen::setWindowTitle(title);
