@@ -1,0 +1,1 @@
+@call %~dp0gen-doc.bat > %~dp0gen-doc.log 2>&1

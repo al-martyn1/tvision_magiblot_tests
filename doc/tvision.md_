@@ -2,6 +2,21 @@
 Title: Заметки по портированию TurboVision (magiblot) на голое железо
 ---
 
+Данная статья помогла мне добавить в TurboVision (magiblot) возможности для работы на голом железе, в микроконтроллере, без какой-либо операционной системы.
+
+Первоначально я пытался разобраться, что мне требуется сделать, гуляя по исходным текстам в IDE, но, потратив некоторое время,
+я понял, что ни на йоту не приблизился к пониманию того, что мне требуется сделать, и решил начать с описания существующих классов,
+вставляя фрагменты кода непосредственно в документ. В этом мне оказала безценную помощь утилита [umba-md-pp](https://github.com/al-martyn1/umba-md-pp/blob/main/README.md),
+которая позволяет вставлять произвольные фрагменты кода из сторонних файлов по сигнатуре (и не только), и умеющая искать блоки кода по блочным символам (`{}` для `С++`) и не только.
+Также мне очень помогла утилита `umba-md-pp-view`, которая при помощи **Doxygen** умеет формировать `RTF`-файл из `MD` документа для локального просмотра.
+
+По мере того, как я описывал существующее положение дел, ко мне стало приходить понимание того, что требуется сделать.
+Был потрачен день на блуждание по исходникам, и в результате выхлопа было ровно ноль. Затем было потрачено полтора дня на описание существующей системы,
+и полдня на реализацию новой подсистемы.
+
+Получившийся документ в результате может служить некоторым руководством по подсистеме вывода графики и пользовательского ввода библиотеки TurboVision.
+
+
 # Классы и структуры
 
 #//---------------------------------------------
@@ -90,6 +105,238 @@ The base class of AnsiDisplay must be a derived of TerminalDisplay.
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/win32con.h#`class Win32Display : public TerminalDisplay`-{}
 
 
+### Резюме по DisplayStrategy
+
+Базовый класс, он же "интерфейс" - `DisplayStrategy`. От него наследуется `TerminalDisplay`.
+От `TerminalDisplay` наследуются `NcursesDisplay` и `Win32Display`.
+`NcursesDisplay` и `Win32Display` используются или непосредственно, или в качестве базового для `AnsiDisplay` 
+(`AnsiDisplay<Win32Display>` / `AnsiDisplay<NcursesDisplay>`). Для BareMetall нужно делать BareMetallDisplay, 
+который ведёт себя аналогично - BareMetallDisplay умеет, например, отображать себя на графическом дисплее 
+(через предоставляемые пользователем внешние функции сброса изображения на дисплей), а обёрнутый в `AnsiDisplay`
+(`AnsiDisplay<BareMetallDisplay>`) - умеет отображать себя на ANSI терминале (также через предоставляемую 
+пользователем функцию записы в последовательный порт).
+
+
+### Методы DisplayStrategy
+
+ - `TPoint getScreenSize()` - возвращает размер экрана;
+ - `int getCaretSize()` - возвращает размер каретки, от 0 до 100, где 0 - каретка выключена. По факту используются значения 0, 1, 100.
+ - `void clearScreen()` - 
+ - `ushort getScreenMode()` - 
+ - `void reloadScreenInfo()` - 
+ - `void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/)` - 
+ - `void lowlevelMoveCursor(uint /*x*/, uint /*y*/)` - 
+ - `void lowlevelMoveCursorX(uint x, uint y)` - 
+ - `void lowlevelCursorSize(int /*size*/)` - 
+ - `void lowlevelFlush()` - 
+ - `bool screenChanged()` - 
+
+
+#### getScreenSize
+
+#// NNN`string1`/`string2`-
+#// Данный якорь ищет строку string2 после строки string1, которую, в свою очередь, ищет начиная со строки NNN
+
+Базовая реализация возвращает нулевой размер экрана.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual TPoint getScreenSize() noexcept`-{}
+
+Реализация для `NcursesDisplay` возвращает размер экрана, получаемый через функцию [getmaxyx](https://www.opennet.ru/man.shtml?topic=getmaxyx&category=3&russian=1).
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`TPoint NcursesDisplay::getScreenSize() noexcept`-{}
+
+Реализация для `Win32Display` возвращает полученный и сохранённый в методе `reloadScreenInfo()` размер. `io` - член класса `TerminalDisplay` типа `StdioCtl` - хранящего хэндлы IO-потоков консоли.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`TPoint Win32Display::getScreenSize() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::reloadScreenInfo() noexcept`-`CONSOLE_SCREEN_BUFFER_INFO sbInfo {};`
+
+
+
+#### getCaretSize
+
+Базовая реализация возвращает нулевой размер каретки (каретка не отображается).
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual int getCaretSize() noexcept`-{}
+
+Реализация для `NcursesDisplay` возвращает размер курсора при помощи функции [curs_set](https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curs_set.html).
+
+|Value of visibility|Appearance of Cursor|Рез-т getCaretSize|
+|:---:|---|---|
+|0|Invisible|0|
+|1|Terminal-specific normal mode|1|
+|2|Terminal-specific high visibility mode|100|
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`int NcursesDisplay::getCaretSize() noexcept`-{}
+
+Реализация для `Win32Display` возвращает размер курсора от 0 до 100 (где 0 - курсор выключен):
+> Процент ячейки символа, заполненной курсором. Это значение составляет от 1 до 100. Внешний вид курсора зависит от полного заполнения ячейки до отображения в виде горизонтальной линии в нижней части ячейки.
+> Хотя значение dwSize обычно составляет от 1 до 100, при некоторых обстоятельствах может быть возвращено значение за пределами этого диапазона. Например, если CursorSize имеет значение 0 в реестре, возвращаемое значение dwSize будет равно 0.
+
+См. описание структуры [CONSOLE_CURSOR_INFO](https://learn.microsoft.com/ru-ru/windows/console/console-cursor-info-str).
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`int Win32Display::getCaretSize() noexcept`-{}
+
+
+
+#### clearScreen
+
+Базовая реализация ничего не делает.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void clearScreen() noexcept`-{}
+
+Реализация для `NcursesDisplay` очищает экран при помощи вызова [wclear](https://www.opennet.ru/man.shtml?topic=wclear&category=3&russian=1).
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::clearScreen() noexcept`-{}
+
+Реализация для `Win32Display` очищает экран заполнением атрибутом 0x07 (белый на черном фоне) и символом пробела при помощи функций
+[FillConsoleOutputAttribute](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputattribute) / [FillConsoleOutputCharacterA](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputcharacter).
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::clearScreen() noexcept`-{}
+
+
+
+#### getScreenMode
+
+Базовая реализация возвращает "пустой" нулевой режим.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual ushort getScreenMode() noexcept`-{}
+
+Реализации для `NcursesDisplay` и для `Win32Display` не реализуют данный метод самостоятельно, а наследуют реализацию из класса `TerminalDisplay`:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/termdisp.cpp#`ushort TerminalDisplay::getScreenMode() noexcept`-{}
+
+Возможные флаги:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/system.h#`class TDisplay`/`enum videoModes`-{}
+
+Классы, производные от `TerminalDisplay` должны вызывать `initCapabilities()` в конструкторе. `initCapabilities()`, в свою очередь, вызывает `getCapabilities()`, которая на основании
+переменных окружения настраивает количество цветов терминала (**тут надо переделать** - добавить условную компиляцию для `TV_BARE_METAL` и избавится от переменных окружения, 
+также надо сделать не прямое сравнение, а поиск подстрок - так, переменная `TERM` в Debian консоли возвращает строку "xterm-256color", а переменная `COLORTERM` - пуста).
+
+Если не получается настроить при помощи переменных окружения, вызывается метод `virtual int TerminalDisplay::getColorCount() noexcept` - `BareMetallDisplay` должен его переопределять. 
+Версия для `TV_BARE_METAL` - 16 цветов, если не задано `TV_BARE_METAL_TRUE_COLOR`.
+
+Также в `TerminalDisplay::getScreenMode()` вызывается `io.getFontSize()` - не очень пока понятно, зачем.
+
+
+
+#### reloadScreenInfo
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void reloadScreenInfo() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::reloadScreenInfo() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::reloadScreenInfo() noexcept`-{}
+
+Для `BareMetallDisplay` сделаем примерно как для `Win32Display`. `reloadScreenInfo()` будет возвращать фикс. значения, если задано `TV_BARE_METAL_DISPLAY_SIZE_80_25` или `TV_BARE_METAL_DISPLAY_SIZE_132_40`,
+или надо самому реализовать метод `reloadScreenInfo()`, если задано `TV_BARE_METAL_DISPLAY_SIZE_CUSTOM`.
+
+
+
+#### lowlevelWriteChars
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ansidisp.cpp#`void AnsiDisplayBase::lowlevelWriteChars( TStringView chars, TColorAttr attr, const TermCap &termcap ) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase`/`void lowlevelWriteChars(`-{}
+
+
+
+
+#### lowlevelMoveCursor
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::lowlevelMoveCursor(uint x, uint y) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ansidisp.cpp#`void AnsiDisplayBase::lowlevelMoveCursor(uint x, uint y) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase`/`void lowlevelMoveCursor(`-{}
+
+
+#### lowlevelMoveCursorX
+
+По умолчанию вызывается реализация `lowlevelMoveCursor`:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void lowlevelMoveCursorX(uint x, uint y) noexcept`-{}
+
+Для `AnsiDisplay` производится оптимизация:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ansidisp.cpp#`void AnsiDisplayBase::lowlevelMoveCursorX(uint x, uint) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase`/`void lowlevelMoveCursorX(`-{}
+
+
+#### lowlevelCursorSize
+
+Базовая реализация ничего не делает.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void lowlevelCursorSize(int /*size*/) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::lowlevelCursorSize(int size) noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::lowlevelCursorSize(int size) noexcept`-{}
+
+Для `AnsiDisplay` ничего не делается, но вообще-то команды такие есть в протоколе, как минимум, показать и спрятать 
+каретку - **надо доделать** ([CSI ?25l/CSI ?25h](https://ru.wikipedia.org/wiki/%D0%A3%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D0%B5_%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8_ANSI)).
+
+
+#### lowlevelFlush
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual void lowlevelFlush() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ncurdisp.cpp#`void NcursesDisplay::lowlevelFlush() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::lowlevelFlush() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/ansidisp.cpp#`void AnsiDisplayBase::lowlevelFlush() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/ansidisp.h#`template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase`/`void lowlevelFlush(`-{}
+
+
+#### screenChanged
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class DisplayStrategy`/`virtual bool screenChanged() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/termdisp.cpp#`bool TerminalDisplay::screenChanged() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`bool Win32Display::screenChanged() noexcept`-{}
+
+Для `NcursesDisplay` реализации нет, там каким-то образом (не разбирался детально) используется сигнал `SIGWINCH`.
+
+
+#/*
+
+ - `` - 
+ - `` - 
+ - `` - 
+    virtual TPoint getScreenSize() noexcept { return {}; }
+    virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
+    virtual void clearScreen() noexcept {}
+    virtual ushort getScreenMode() noexcept { return 0; }
+    virtual void reloadScreenInfo() noexcept {}
+    virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept {}
+    virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept {};
+    virtual void lowlevelMoveCursorX(uint x, uint y) noexcept { lowlevelMoveCursor(x, y); }
+    virtual void lowlevelCursorSize(int /*size*/) noexcept {};
+    virtual void lowlevelFlush() noexcept {};
+    virtual bool screenChanged() noexcept { return false; }
+
+#*/
+
+
+
+
+
+
 #//---------------------------------------------
 
 ## ConsoleStrategy и его производные
@@ -128,7 +375,6 @@ win32con.cpp:103 (ф-я Win32ConsoleStrategy::create())
 ### Platform::createConsole() - создание консоли
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/platfcon.cpp#`ConsoleStrategy &Platform::createConsole() noexcept`-{}
-
 
 
 #//---------------------------------------------
