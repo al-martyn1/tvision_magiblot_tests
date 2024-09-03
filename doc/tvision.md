@@ -29,6 +29,8 @@
     - [class InputGetter](#user-content-class-inputgetter)
     - [struct CSIData](#user-content-struct-csidata)
     - [namespace TermIO](#user-content-namespace-termio)
+  - [Ввод](#user-content-ввод)
+    - [TVISION_ESCDELAY](#user-content-tvision_escdelay)
   - [Резюме по DisplayStrategy](#user-content-резюме-по-displaystrategy)
     - [Методы DisplayStrategy](#user-content-методы-displaystrategy)
     - [getScreenSize](#user-content-getscreensize)
@@ -1067,6 +1069,13 @@ namespace TermIO
 ```
 
 
+TVISION_MAX_FPS
+
+# Ввод
+
+## TVISION_ESCDELAY
+
+
 
 
 # Резюме по DisplayStrategy
@@ -1228,7 +1237,7 @@ tvision/include/tvision/internal/platform.h:27
 
 Реализации для `NcursesDisplay` и для `Win32Display` не реализуют данный метод самостоятельно, а наследуют реализацию из класса `TerminalDisplay`:
 
-tvision/source/platform/termdisp.cpp:44
+tvision/source/platform/termdisp.cpp:138
 ```cpp
 ushort TerminalDisplay::getScreenMode() noexcept
 {
@@ -1535,7 +1544,7 @@ tvision/include/tvision/internal/platform.h:34
     virtual bool screenChanged() noexcept { return false; }
 ```
 
-tvision/source/platform/termdisp.cpp:64
+tvision/source/platform/termdisp.cpp:158
 ```cpp
 bool TerminalDisplay::screenChanged() noexcept
 {

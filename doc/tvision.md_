@@ -215,6 +215,13 @@ win32con.cpp:103 (ф-я Win32ConsoleStrategy::create())
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/terminal.h#`namespace TermIO`-{}
 
 
+TVISION_MAX_FPS
+
+# Ввод
+
+## TVISION_ESCDELAY
+
+
 #/*
 
 
