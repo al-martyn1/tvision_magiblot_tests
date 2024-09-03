@@ -15,19 +15,6 @@
       - [template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase](#user-content-templateclass-displaybase-class-ansidisplay--public-displaybase-public-ansidisplaybase)
       - [class NcursesDisplay : public TerminalDisplay](#user-content-class-ncursesdisplay--public-terminaldisplay)
       - [class Win32Display : public TerminalDisplay](#user-content-class-win32display--public-terminaldisplay)
-      - [Резюме по DisplayStrategy](#user-content-резюме-по-displaystrategy)
-      - [Методы DisplayStrategy](#user-content-методы-displaystrategy)
-        - [getScreenSize](#user-content-getscreensize)
-        - [getCaretSize](#user-content-getcaretsize)
-        - [clearScreen](#user-content-clearscreen)
-        - [getScreenMode](#user-content-getscreenmode)
-        - [reloadScreenInfo](#user-content-reloadscreeninfo)
-        - [lowlevelWriteChars](#user-content-lowlevelwritechars)
-        - [lowlevelMoveCursor](#user-content-lowlevelmovecursor)
-        - [lowlevelMoveCursorX](#user-content-lowlevelmovecursorx)
-        - [lowlevelCursorSize](#user-content-lowlevelcursorsize)
-        - [lowlevelFlush](#user-content-lowlevelflush)
-        - [screenChanged](#user-content-screenchanged)
     - [ConsoleStrategy и его производные](#user-content-consolestrategy-и-его-производные)
       - [struct ConsoleStrategy](#user-content-struct-consolestrategy)
       - [class LinuxConsoleStrategy : public ConsoleStrategy](#user-content-class-linuxconsolestrategy--public-consolestrategy)
@@ -42,6 +29,19 @@
     - [class InputGetter](#user-content-class-inputgetter)
     - [struct CSIData](#user-content-struct-csidata)
     - [namespace TermIO](#user-content-namespace-termio)
+  - [Резюме по DisplayStrategy](#user-content-резюме-по-displaystrategy)
+    - [Методы DisplayStrategy](#user-content-методы-displaystrategy)
+    - [getScreenSize](#user-content-getscreensize)
+    - [getCaretSize](#user-content-getcaretsize)
+    - [clearScreen](#user-content-clearscreen)
+    - [getScreenMode](#user-content-getscreenmode)
+    - [reloadScreenInfo](#user-content-reloadscreeninfo)
+    - [lowlevelWriteChars](#user-content-lowlevelwritechars)
+    - [lowlevelMoveCursor](#user-content-lowlevelmovecursor)
+    - [lowlevelMoveCursorX](#user-content-lowlevelmovecursorx)
+    - [lowlevelCursorSize](#user-content-lowlevelcursorsize)
+    - [lowlevelFlush](#user-content-lowlevelflush)
+    - [screenChanged](#user-content-screenchanged)
 
 
 Данная статья помогла мне добавить в TurboVision (magiblot) возможности для работы на голом железе, в микроконтроллере, без какой-либо операционной системы.
@@ -469,502 +469,6 @@ protected:
 };
 ```
 
-
-### Резюме по DisplayStrategy
-
-Базовый класс, он же "интерфейс" - `DisplayStrategy`. От него наследуется `TerminalDisplay`.
-От `TerminalDisplay` наследуются `NcursesDisplay` и `Win32Display`.
-`NcursesDisplay` и `Win32Display` используются или непосредственно, или в качестве базового для `AnsiDisplay` 
-(`AnsiDisplay<Win32Display>` / `AnsiDisplay<NcursesDisplay>`). Для BareMetall нужно делать BareMetallDisplay, 
-который ведёт себя аналогично - BareMetallDisplay умеет, например, отображать себя на графическом дисплее 
-(через предоставляемые пользователем внешние функции сброса изображения на дисплей), а обёрнутый в `AnsiDisplay`
-(`AnsiDisplay<BareMetallDisplay>`) - умеет отображать себя на ANSI терминале (также через предоставляемую 
-пользователем функцию записы в последовательный порт).
-
-
-### Методы DisplayStrategy
-
- - `TPoint getScreenSize()` - возвращает размер экрана;
- - `int getCaretSize()` - возвращает размер каретки, от 0 до 100, где 0 - каретка выключена. По факту используются значения 0, 1, 100.
- - `void clearScreen()` - 
- - `ushort getScreenMode()` - 
- - `void reloadScreenInfo()` - 
- - `void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/)` - 
- - `void lowlevelMoveCursor(uint /*x*/, uint /*y*/)` - 
- - `void lowlevelMoveCursorX(uint x, uint y)` - 
- - `void lowlevelCursorSize(int /*size*/)` - 
- - `void lowlevelFlush()` - 
- - `bool screenChanged()` - 
-
-
-#### getScreenSize
-
-
-Базовая реализация возвращает нулевой размер экрана.
-
-tvision/include/tvision/internal/platform.h:24
-```cpp
-    virtual TPoint getScreenSize() noexcept { return {}; }
-```
-
-Реализация для `NcursesDisplay` возвращает размер экрана, получаемый через функцию [getmaxyx](https://www.opennet.ru/man.shtml?topic=getmaxyx&category=3&russian=1).
-
-tvision/source/platform/ncurdisp.cpp:60
-```cpp
-TPoint NcursesDisplay::getScreenSize() noexcept
-{
-    int y, x;
-    getmaxyx(stdscr, y, x);
-    return {max(x, 0), max(y, 0)};
-}
-```
-
-Реализация для `Win32Display` возвращает полученный и сохранённый в методе `reloadScreenInfo()` размер. `io` - член класса `TerminalDisplay` типа `StdioCtl` - хранящего хэндлы IO-потоков консоли.
-
-tvision/source/platform/win32con.cpp:287
-```cpp
-TPoint Win32Display::getScreenSize() noexcept
-{
-    return size;
-}
-```
-
-tvision/source/platform/win32con.cpp:257
-```cpp
-void Win32Display::reloadScreenInfo() noexcept
-{
-    size = io.getSize();
-```
-
-
-
-#### getCaretSize
-
-Базовая реализация возвращает нулевой размер каретки (каретка не отображается).
-
-tvision/include/tvision/internal/platform.h:25
-```cpp
-    virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
-```
-
-Реализация для `NcursesDisplay` возвращает размер курсора при помощи функции [curs_set](https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curs_set.html).
-
-|Value of visibility|Appearance of Cursor|Рез-т getCaretSize|
-|:---:|---|---|
-|0|Invisible|0|
-|1|Terminal-specific normal mode|1|
-|2|Terminal-specific high visibility mode|100|
-
-tvision/source/platform/ncurdisp.cpp:67
-```cpp
-int NcursesDisplay::getCaretSize() noexcept
-{
-    int size = curs_set(0);
-    curs_set(size);
-    return size <= 0 ? 0 : size == 1 ? 1 : 100;
-}
-```
-
-Реализация для `Win32Display` возвращает размер курсора от 0 до 100 (где 0 - курсор выключен):
-> Процент ячейки символа, заполненной курсором. Это значение составляет от 1 до 100. Внешний вид курсора зависит от полного заполнения ячейки до отображения в виде горизонтальной линии в нижней части ячейки.
-> Хотя значение dwSize обычно составляет от 1 до 100, при некоторых обстоятельствах может быть возвращено значение за пределами этого диапазона. Например, если CursorSize имеет значение 0 в реестре, возвращаемое значение dwSize будет равно 0.
-
-См. описание структуры [CONSOLE_CURSOR_INFO](https://learn.microsoft.com/ru-ru/windows/console/console-cursor-info-str).
-
-tvision/source/platform/win32con.cpp:292
-```cpp
-int Win32Display::getCaretSize() noexcept
-{
-    CONSOLE_CURSOR_INFO crInfo {};
-    GetConsoleCursorInfo(io.out(), &crInfo);
-    return crInfo.bVisible ? crInfo.dwSize : 0;
-}
-```
-
-
-
-#### clearScreen
-
-Базовая реализация ничего не делает.
-
-tvision/include/tvision/internal/platform.h:26
-```cpp
-    virtual void clearScreen() noexcept {}
-```
-
-Реализация для `NcursesDisplay` очищает экран при помощи вызова [wclear](https://www.opennet.ru/man.shtml?topic=wclear&category=3&russian=1).
-
-tvision/source/platform/ncurdisp.cpp:79
-```cpp
-void NcursesDisplay::clearScreen() noexcept { wclear(stdscr); }
-```
-
-Реализация для `Win32Display` очищает экран заполнением атрибутом 0x07 (белый на черном фоне) и символом пробела при помощи функций
-[FillConsoleOutputAttribute](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputattribute) / [FillConsoleOutputCharacterA](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputcharacter).
-
-tvision/source/platform/win32con.cpp:323
-```cpp
-void Win32Display::clearScreen() noexcept
-{
-    COORD coord = {0, 0};
-    DWORD length = size.x * size.y;
-    BYTE attr = 0x07;
-    DWORD read;
-    FillConsoleOutputAttribute(io.out(), attr, length, coord, &read);
-    FillConsoleOutputCharacterA(io.out(), ' ', length, coord, &read);
-    lastAttr = attr;
-}
-```
-
-
-
-#### getScreenMode
-
-Базовая реализация возвращает "пустой" нулевой режим.
-
-tvision/include/tvision/internal/platform.h:27
-```cpp
-    virtual ushort getScreenMode() noexcept { return 0; }
-```
-
-Реализации для `NcursesDisplay` и для `Win32Display` не реализуют данный метод самостоятельно, а наследуют реализацию из класса `TerminalDisplay`:
-
-tvision/source/platform/termdisp.cpp:44
-```cpp
-ushort TerminalDisplay::getScreenMode() noexcept
-{
-    ushort mode;
-    if (termcap.colors == NoColor)
-        mode = TDisplay::smMono;
-    else
-        mode = TDisplay::smCO80;
-
-    if (termcap.colors == Direct)
-        mode |= TDisplay::smColor256 | TDisplay::smColorHigh;
-    else if (termcap.colors == Indexed256)
-        mode |= TDisplay::smColor256;
-
-    TPoint fontSize = io.getFontSize();
-    if (fontSize.x > 0 && fontSize.y > 0 && fontSize.x >= fontSize.y)
-        mode |= TDisplay::smFont8x8;
-
-    return mode;
-}
-```
-
-Возможные флаги:
-
-tvision/include/tvision/system.h:415
-```cpp
-    enum videoModes
-        {
-        smBW80      = 0x0002,
-        smCO80      = 0x0003,
-        smMono      = 0x0007,
-        smFont8x8   = 0x0100,
-        smColor256  = 0x0200,
-        smColorHigh = 0x0400,
-        smUpdate    = 0x8000,
-        };
-```
-
-Классы, производные от `TerminalDisplay` должны вызывать `initCapabilities()` в конструкторе. `initCapabilities()`, в свою очередь, вызывает `getCapabilities()`, которая на основании
-переменных окружения настраивает количество цветов терминала (**тут надо переделать** - добавить условную компиляцию для `TV_BARE_METAL` и избавится от переменных окружения, 
-также надо сделать не прямое сравнение, а поиск подстрок - так, переменная `TERM` в Debian консоли возвращает строку "xterm-256color", а переменная `COLORTERM` - пуста).
-
-Если не получается настроить при помощи переменных окружения, вызывается метод `virtual int TerminalDisplay::getColorCount() noexcept` - `BareMetallDisplay` должен его переопределять. 
-Версия для `TV_BARE_METAL` - 16 цветов, если не задано `TV_BARE_METAL_TRUE_COLOR`.
-
-Также в `TerminalDisplay::getScreenMode()` вызывается `io.getFontSize()` - не очень пока понятно, зачем.
-
-
-
-#### reloadScreenInfo
-
-tvision/include/tvision/internal/platform.h:28
-```cpp
-    virtual void reloadScreenInfo() noexcept {}
-```
-
-tvision/source/platform/ncurdisp.cpp:47
-```cpp
-void NcursesDisplay::reloadScreenInfo() noexcept
-{
-    TPoint size = io.getSize();
-    // When Ncurses is not used for drawing (e.g. AnsiDisplay<NcursesDisplay>),
-    // 'resizeterm' causes terrible flickering, so we better use 'resize_term'.
-    // However, when Ncurses is used for drawing, 'resizeterm' is necessary, as
-    // the screen becomes garbled otherwise.
-    if (usesNcursesDraw)
-        resizeterm(size.y, size.x);
-    else
-        resize_term(size.y, size.x);
-}
-```
-
-tvision/source/platform/win32con.cpp:257
-```cpp
-void Win32Display::reloadScreenInfo() noexcept
-{
-    size = io.getSize();
-    CONSOLE_SCREEN_BUFFER_INFO sbInfo {};
-    GetConsoleScreenBufferInfo(io.out(), &sbInfo);
-    // Set the cursor temporally to (0, 0) to prevent the console from crashing
-    // due to https://github.com/microsoft/terminal/issues/7511.
-    auto curPos = sbInfo.dwCursorPosition;
-    SetConsoleCursorPosition(io.out(), {0, 0});
-    // Make sure the buffer size matches the viewport size so that the
-    // scrollbars are not shown.
-    SetConsoleScreenBufferSize(io.out(), {(short) size.x, (short) size.y});
-    // Restore the cursor position (it does not matter if it is out of bounds).
-    SetConsoleCursorPosition(io.out(), curPos);
-}
-```
-
-Для `BareMetallDisplay` сделаем примерно как для `Win32Display`. `reloadScreenInfo()` будет возвращать фикс. значения, если задано `TV_BARE_METAL_DISPLAY_SIZE_80_25` или `TV_BARE_METAL_DISPLAY_SIZE_132_40`,
-или надо самому реализовать метод `reloadScreenInfo()`, если задано `TV_BARE_METAL_DISPLAY_SIZE_CUSTOM`.
-
-
-
-#### lowlevelWriteChars
-
-tvision/include/tvision/internal/platform.h:29
-```cpp
-    virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept {}
-```
-
-tvision/source/platform/ncurdisp.cpp:128
-```cpp
-void NcursesDisplay::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept
-{
-    usesNcursesDraw = true;
-    // Translate and apply text attributes.
-    uint curses_attr = translateAttributes(attr);
-    wattron(stdscr, curses_attr);
-    // Print characters.
-    waddnstr(stdscr, chars.data(), chars.size());
-    wattroff(stdscr, curses_attr);
-}
-```
-
-tvision/source/platform/win32con.cpp:336
-```cpp
-void Win32Display::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept
-{
-    uchar bios = attr.toBIOS();
-    if (bios != lastAttr)
-    {
-        lowlevelFlush();
-        SetConsoleTextAttribute(io.out(), bios);
-        lastAttr = bios;
-    }
-    buf.insert(buf.end(), chars.data(), chars.data()+chars.size());
-}
-```
-
-tvision/source/platform/ansidisp.cpp:95
-```cpp
-void AnsiDisplayBase::lowlevelWriteChars( TStringView chars, TColorAttr attr,
-                                          const TermCap &termcap ) noexcept
-{
-    buf.reserve(256);
-    buf.tail = convertAttributes(attr, lastAttr, termcap, buf.tail);
-    buf.push(chars);
-}
-```
-
-tvision/include/tvision/internal/ansidisp.h:142
-```cpp
-    void lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept override
-        { AnsiDisplayBase::lowlevelWriteChars(chars, attr, TerminalDisplay::termcap); }
-```
-
-
-
-
-#### lowlevelMoveCursor
-
-tvision/include/tvision/internal/platform.h:30
-```cpp
-    virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept {};
-```
-
-tvision/source/platform/ncurdisp.cpp:80
-```cpp
-void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept { wmove(stdscr, y, x); }
-```
-
-tvision/source/platform/win32con.cpp:348
-```cpp
-void Win32Display::lowlevelMoveCursor(uint x, uint y) noexcept
-{
-    lowlevelFlush();
-    SetConsoleCursorPosition(io.out(), {(short) x, (short) y});
-}
-```
-
-tvision/source/platform/ansidisp.cpp:109
-```cpp
-void AnsiDisplayBase::lowlevelMoveCursor(uint x, uint y) noexcept
-{
-    buf.reserve(32);
-//     buf.push('\r'); // Make dumps readable.
-    bufWriteCSI2(y + 1, x + 1, 'H');
-}
-```
-
-tvision/include/tvision/internal/ansidisp.h:144
-```cpp
-    void lowlevelMoveCursor(uint x, uint y) noexcept override
-        { AnsiDisplayBase::lowlevelMoveCursor(x, y); }
-```
-
-
-#### lowlevelMoveCursorX
-
-По умолчанию вызывается реализация `lowlevelMoveCursor`:
-
-tvision/include/tvision/internal/platform.h:31
-```cpp
-    virtual void lowlevelMoveCursorX(uint x, uint y) noexcept { lowlevelMoveCursor(x, y); }
-```
-
-Для `AnsiDisplay` производится оптимизация:
-
-tvision/source/platform/ansidisp.cpp:103
-```cpp
-void AnsiDisplayBase::lowlevelMoveCursorX(uint x, uint) noexcept
-{
-    // Optimized case where the cursor only moves horizontally.
-    bufWriteCSI1(x + 1, 'G');
-}
-```
-
-tvision/include/tvision/internal/ansidisp.h:146
-```cpp
-    void lowlevelMoveCursorX(uint x, uint y) noexcept override
-        { AnsiDisplayBase::lowlevelMoveCursorX(x, y); }
-```
-
-
-#### lowlevelCursorSize
-
-Базовая реализация ничего не делает.
-
-tvision/include/tvision/internal/platform.h:32
-```cpp
-    virtual void lowlevelCursorSize(int /*size*/) noexcept {};
-```
-
-tvision/source/platform/ncurdisp.cpp:83
-```cpp
-void NcursesDisplay::lowlevelCursorSize(int size) noexcept
-{
-/* The caret is the keyboard cursor. If size is 0, the caret is hidden. The
- * other possible values are from 1 to 100, theoretically, and represent the
- * percentage of the character cell the caret fills.
- * https://docs.microsoft.com/en-us/windows/console/console-cursor-info-str
- *
- * ncurses supports only three levels: invisible (0), normal (1) and
- * very visible (2). They don't make a difference in all terminals, but
- * we can try mapping them to the values requested by Turbo Vision. */
-    curs_set(size > 0 ? size == 100 ? 2 : 1 : 0); // Implies refresh().
-}
-```
-
-tvision/source/platform/win32con.cpp:310
-```cpp
-void Win32Display::lowlevelCursorSize(int size) noexcept
-{
-    CONSOLE_CURSOR_INFO crInfo;
-    if (size) {
-        crInfo.bVisible = TRUE;
-        crInfo.dwSize = size;
-    } else {
-        crInfo.bVisible = FALSE;
-        crInfo.dwSize = 1;
-    }
-    SetConsoleCursorInfo(io.out(), &crInfo);
-}
-```
-
-Для `AnsiDisplay` ничего не делается, но вообще-то команды такие есть в протоколе, как минимум, показать и спрятать 
-каретку - **надо доделать** ([CSI ?25l/CSI ?25h](https://ru.wikipedia.org/wiki/%D0%A3%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D0%B5_%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8_ANSI)).
-
-
-#### lowlevelFlush
-
-tvision/include/tvision/internal/platform.h:33
-```cpp
-    virtual void lowlevelFlush() noexcept {};
-```
-
-tvision/source/platform/ncurdisp.cpp:81
-```cpp
-void NcursesDisplay::lowlevelFlush() noexcept { wrefresh(stdscr); }
-```
-
-tvision/source/platform/win32con.cpp:354
-```cpp
-void Win32Display::lowlevelFlush() noexcept
-{
-    io.write(buf.data(), buf.size());
-    buf.resize(0);
-}
-```
-
-tvision/source/platform/ansidisp.cpp:116
-```cpp
-void AnsiDisplayBase::lowlevelFlush() noexcept
-{
-    io.write(buf.data(), buf.size());
-    buf.clear();
-}
-```
-
-tvision/include/tvision/internal/ansidisp.h:148
-```cpp
-    void lowlevelFlush() noexcept override
-        { AnsiDisplayBase::lowlevelFlush(); }
-```
-
-
-#### screenChanged
-
-tvision/include/tvision/internal/platform.h:34
-```cpp
-    virtual bool screenChanged() noexcept { return false; }
-```
-
-tvision/source/platform/termdisp.cpp:64
-```cpp
-bool TerminalDisplay::screenChanged() noexcept
-{
-    TPoint size = io.getSize();
-    bool changed = (size != lastSize);
-    lastSize = size;
-    return changed;
-}
-```
-
-tvision/source/platform/win32con.cpp:273
-```cpp
-bool Win32Display::screenChanged() noexcept
-{
-    bool changed = TerminalDisplay::screenChanged();
-    CONSOLE_FONT_INFO fontInfo;
-    if ( GetCurrentConsoleFont(io.out(), FALSE, &fontInfo)
-         && memcmp(&fontInfo, &lastFontInfo, sizeof(fontInfo)) != 0 )
-    {
-        changed = true;
-        WinWidth::reset();
-        lastFontInfo = fontInfo;
-    }
-    return changed;
-}
-```
-
-Для `NcursesDisplay` реализации нет, там каким-то образом (не разбирался детально) используется сигнал `SIGWINCH`.
 
 
 
@@ -1564,6 +1068,502 @@ namespace TermIO
 
 
 
+
+# Резюме по DisplayStrategy
+
+Базовый класс, он же "интерфейс" - `DisplayStrategy`. От него наследуется `TerminalDisplay`.
+От `TerminalDisplay` наследуются `NcursesDisplay` и `Win32Display`.
+`NcursesDisplay` и `Win32Display` используются или непосредственно, или в качестве базового для `AnsiDisplay` 
+(`AnsiDisplay<Win32Display>` / `AnsiDisplay<NcursesDisplay>`). Для BareMetall нужно делать BareMetallDisplay, 
+который ведёт себя аналогично - BareMetallDisplay умеет, например, отображать себя на графическом дисплее 
+(через предоставляемые пользователем внешние функции сброса изображения на дисплей), а обёрнутый в `AnsiDisplay`
+(`AnsiDisplay<BareMetallDisplay>`) - умеет отображать себя на ANSI терминале (также через предоставляемую 
+пользователем функцию записы в последовательный порт).
+
+
+## Методы DisplayStrategy
+
+ - `TPoint getScreenSize()` - возвращает размер экрана;
+ - `int getCaretSize()` - возвращает размер каретки, от 0 до 100, где 0 - каретка выключена. По факту используются значения 0, 1, 100.
+ - `void clearScreen()` - 
+ - `ushort getScreenMode()` - 
+ - `void reloadScreenInfo()` - 
+ - `void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/)` - 
+ - `void lowlevelMoveCursor(uint /*x*/, uint /*y*/)` - 
+ - `void lowlevelMoveCursorX(uint x, uint y)` - 
+ - `void lowlevelCursorSize(int /*size*/)` - 
+ - `void lowlevelFlush()` - 
+ - `bool screenChanged()` - 
+
+
+## getScreenSize
+
+
+Базовая реализация возвращает нулевой размер экрана.
+
+tvision/include/tvision/internal/platform.h:24
+```cpp
+    virtual TPoint getScreenSize() noexcept { return {}; }
+```
+
+Реализация для `NcursesDisplay` возвращает размер экрана, получаемый через функцию [getmaxyx](https://www.opennet.ru/man.shtml?topic=getmaxyx&category=3&russian=1).
+
+tvision/source/platform/ncurdisp.cpp:60
+```cpp
+TPoint NcursesDisplay::getScreenSize() noexcept
+{
+    int y, x;
+    getmaxyx(stdscr, y, x);
+    return {max(x, 0), max(y, 0)};
+}
+```
+
+Реализация для `Win32Display` возвращает полученный и сохранённый в методе `reloadScreenInfo()` размер. `io` - член класса `TerminalDisplay` типа `StdioCtl` - хранящего хэндлы IO-потоков консоли.
+
+tvision/source/platform/win32con.cpp:287
+```cpp
+TPoint Win32Display::getScreenSize() noexcept
+{
+    return size;
+}
+```
+
+tvision/source/platform/win32con.cpp:257
+```cpp
+void Win32Display::reloadScreenInfo() noexcept
+{
+    size = io.getSize();
+```
+
+
+
+## getCaretSize
+
+Базовая реализация возвращает нулевой размер каретки (каретка не отображается).
+
+tvision/include/tvision/internal/platform.h:25
+```cpp
+    virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
+```
+
+Реализация для `NcursesDisplay` возвращает размер курсора при помощи функции [curs_set](https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curs_set.html).
+
+|Value of visibility|Appearance of Cursor|Рез-т getCaretSize|
+|:---:|---|---|
+|0|Invisible|0|
+|1|Terminal-specific normal mode|1|
+|2|Terminal-specific high visibility mode|100|
+
+tvision/source/platform/ncurdisp.cpp:67
+```cpp
+int NcursesDisplay::getCaretSize() noexcept
+{
+    int size = curs_set(0);
+    curs_set(size);
+    return size <= 0 ? 0 : size == 1 ? 1 : 100;
+}
+```
+
+Реализация для `Win32Display` возвращает размер курсора от 0 до 100 (где 0 - курсор выключен):
+> Процент ячейки символа, заполненной курсором. Это значение составляет от 1 до 100. Внешний вид курсора зависит от полного заполнения ячейки до отображения в виде горизонтальной линии в нижней части ячейки.
+> Хотя значение dwSize обычно составляет от 1 до 100, при некоторых обстоятельствах может быть возвращено значение за пределами этого диапазона. Например, если CursorSize имеет значение 0 в реестре, возвращаемое значение dwSize будет равно 0.
+
+См. описание структуры [CONSOLE_CURSOR_INFO](https://learn.microsoft.com/ru-ru/windows/console/console-cursor-info-str).
+
+tvision/source/platform/win32con.cpp:292
+```cpp
+int Win32Display::getCaretSize() noexcept
+{
+    CONSOLE_CURSOR_INFO crInfo {};
+    GetConsoleCursorInfo(io.out(), &crInfo);
+    return crInfo.bVisible ? crInfo.dwSize : 0;
+}
+```
+
+
+
+## clearScreen
+
+Базовая реализация ничего не делает.
+
+tvision/include/tvision/internal/platform.h:26
+```cpp
+    virtual void clearScreen() noexcept {}
+```
+
+Реализация для `NcursesDisplay` очищает экран при помощи вызова [wclear](https://www.opennet.ru/man.shtml?topic=wclear&category=3&russian=1).
+
+tvision/source/platform/ncurdisp.cpp:79
+```cpp
+void NcursesDisplay::clearScreen() noexcept { wclear(stdscr); }
+```
+
+Реализация для `Win32Display` очищает экран заполнением атрибутом 0x07 (белый на черном фоне) и символом пробела при помощи функций
+[FillConsoleOutputAttribute](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputattribute) / [FillConsoleOutputCharacterA](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputcharacter).
+
+tvision/source/platform/win32con.cpp:323
+```cpp
+void Win32Display::clearScreen() noexcept
+{
+    COORD coord = {0, 0};
+    DWORD length = size.x * size.y;
+    BYTE attr = 0x07;
+    DWORD read;
+    FillConsoleOutputAttribute(io.out(), attr, length, coord, &read);
+    FillConsoleOutputCharacterA(io.out(), ' ', length, coord, &read);
+    lastAttr = attr;
+}
+```
+
+
+
+## getScreenMode
+
+Базовая реализация возвращает "пустой" нулевой режим.
+
+tvision/include/tvision/internal/platform.h:27
+```cpp
+    virtual ushort getScreenMode() noexcept { return 0; }
+```
+
+Реализации для `NcursesDisplay` и для `Win32Display` не реализуют данный метод самостоятельно, а наследуют реализацию из класса `TerminalDisplay`:
+
+tvision/source/platform/termdisp.cpp:44
+```cpp
+ushort TerminalDisplay::getScreenMode() noexcept
+{
+    ushort mode;
+    if (termcap.colors == NoColor)
+        mode = TDisplay::smMono;
+    else
+        mode = TDisplay::smCO80;
+
+    if (termcap.colors == Direct)
+        mode |= TDisplay::smColor256 | TDisplay::smColorHigh;
+    else if (termcap.colors == Indexed256)
+        mode |= TDisplay::smColor256;
+
+    TPoint fontSize = io.getFontSize();
+    if (fontSize.x > 0 && fontSize.y > 0 && fontSize.x >= fontSize.y)
+        mode |= TDisplay::smFont8x8;
+
+    return mode;
+}
+```
+
+Возможные флаги:
+
+tvision/include/tvision/system.h:415
+```cpp
+    enum videoModes
+        {
+        smBW80      = 0x0002,
+        smCO80      = 0x0003,
+        smMono      = 0x0007,
+        smFont8x8   = 0x0100,
+        smColor256  = 0x0200,
+        smColorHigh = 0x0400,
+        smUpdate    = 0x8000,
+        };
+```
+
+Классы, производные от `TerminalDisplay` должны вызывать `initCapabilities()` в конструкторе. `initCapabilities()`, в свою очередь, вызывает `getCapabilities()`, которая на основании
+переменных окружения настраивает количество цветов терминала (**тут надо переделать** - добавить условную компиляцию для `TV_BARE_METAL` и избавится от переменных окружения, 
+также надо сделать не прямое сравнение, а поиск подстрок - так, переменная `TERM` в Debian консоли возвращает строку "xterm-256color", а переменная `COLORTERM` - пуста).
+
+Если не получается настроить при помощи переменных окружения, вызывается метод `virtual int TerminalDisplay::getColorCount() noexcept` - `BareMetallDisplay` должен его переопределять. 
+Версия для `TV_BARE_METAL` - 16 цветов, если не задано `TV_BARE_METAL_TRUE_COLOR`.
+
+Также в `TerminalDisplay::getScreenMode()` вызывается `io.getFontSize()` - не очень пока понятно, зачем.
+
+
+
+## reloadScreenInfo
+
+tvision/include/tvision/internal/platform.h:28
+```cpp
+    virtual void reloadScreenInfo() noexcept {}
+```
+
+tvision/source/platform/ncurdisp.cpp:47
+```cpp
+void NcursesDisplay::reloadScreenInfo() noexcept
+{
+    TPoint size = io.getSize();
+    // When Ncurses is not used for drawing (e.g. AnsiDisplay<NcursesDisplay>),
+    // 'resizeterm' causes terrible flickering, so we better use 'resize_term'.
+    // However, when Ncurses is used for drawing, 'resizeterm' is necessary, as
+    // the screen becomes garbled otherwise.
+    if (usesNcursesDraw)
+        resizeterm(size.y, size.x);
+    else
+        resize_term(size.y, size.x);
+}
+```
+
+tvision/source/platform/win32con.cpp:257
+```cpp
+void Win32Display::reloadScreenInfo() noexcept
+{
+    size = io.getSize();
+    CONSOLE_SCREEN_BUFFER_INFO sbInfo {};
+    GetConsoleScreenBufferInfo(io.out(), &sbInfo);
+    // Set the cursor temporally to (0, 0) to prevent the console from crashing
+    // due to https://github.com/microsoft/terminal/issues/7511.
+    auto curPos = sbInfo.dwCursorPosition;
+    SetConsoleCursorPosition(io.out(), {0, 0});
+    // Make sure the buffer size matches the viewport size so that the
+    // scrollbars are not shown.
+    SetConsoleScreenBufferSize(io.out(), {(short) size.x, (short) size.y});
+    // Restore the cursor position (it does not matter if it is out of bounds).
+    SetConsoleCursorPosition(io.out(), curPos);
+}
+```
+
+Для `BareMetallDisplay` сделаем примерно как для `Win32Display`. `reloadScreenInfo()` будет возвращать фикс. значения, если задано `TV_BARE_METAL_DISPLAY_SIZE_80_25` или `TV_BARE_METAL_DISPLAY_SIZE_132_40`,
+или надо самому реализовать метод `reloadScreenInfo()`, если задано `TV_BARE_METAL_DISPLAY_SIZE_CUSTOM`.
+
+
+
+## lowlevelWriteChars
+
+tvision/include/tvision/internal/platform.h:29
+```cpp
+    virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept {}
+```
+
+tvision/source/platform/ncurdisp.cpp:128
+```cpp
+void NcursesDisplay::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept
+{
+    usesNcursesDraw = true;
+    // Translate and apply text attributes.
+    uint curses_attr = translateAttributes(attr);
+    wattron(stdscr, curses_attr);
+    // Print characters.
+    waddnstr(stdscr, chars.data(), chars.size());
+    wattroff(stdscr, curses_attr);
+}
+```
+
+tvision/source/platform/win32con.cpp:336
+```cpp
+void Win32Display::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept
+{
+    uchar bios = attr.toBIOS();
+    if (bios != lastAttr)
+    {
+        lowlevelFlush();
+        SetConsoleTextAttribute(io.out(), bios);
+        lastAttr = bios;
+    }
+    buf.insert(buf.end(), chars.data(), chars.data()+chars.size());
+}
+```
+
+tvision/source/platform/ansidisp.cpp:95
+```cpp
+void AnsiDisplayBase::lowlevelWriteChars( TStringView chars, TColorAttr attr,
+                                          const TermCap &termcap ) noexcept
+{
+    buf.reserve(256);
+    buf.tail = convertAttributes(attr, lastAttr, termcap, buf.tail);
+    buf.push(chars);
+}
+```
+
+tvision/include/tvision/internal/ansidisp.h:142
+```cpp
+    void lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept override
+        { AnsiDisplayBase::lowlevelWriteChars(chars, attr, TerminalDisplay::termcap); }
+```
+
+
+
+
+## lowlevelMoveCursor
+
+tvision/include/tvision/internal/platform.h:30
+```cpp
+    virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept {};
+```
+
+tvision/source/platform/ncurdisp.cpp:80
+```cpp
+void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept { wmove(stdscr, y, x); }
+```
+
+tvision/source/platform/win32con.cpp:348
+```cpp
+void Win32Display::lowlevelMoveCursor(uint x, uint y) noexcept
+{
+    lowlevelFlush();
+    SetConsoleCursorPosition(io.out(), {(short) x, (short) y});
+}
+```
+
+tvision/source/platform/ansidisp.cpp:109
+```cpp
+void AnsiDisplayBase::lowlevelMoveCursor(uint x, uint y) noexcept
+{
+    buf.reserve(32);
+//     buf.push('\r'); // Make dumps readable.
+    bufWriteCSI2(y + 1, x + 1, 'H');
+}
+```
+
+tvision/include/tvision/internal/ansidisp.h:144
+```cpp
+    void lowlevelMoveCursor(uint x, uint y) noexcept override
+        { AnsiDisplayBase::lowlevelMoveCursor(x, y); }
+```
+
+
+## lowlevelMoveCursorX
+
+По умолчанию вызывается реализация `lowlevelMoveCursor`:
+
+tvision/include/tvision/internal/platform.h:31
+```cpp
+    virtual void lowlevelMoveCursorX(uint x, uint y) noexcept { lowlevelMoveCursor(x, y); }
+```
+
+Для `AnsiDisplay` производится оптимизация:
+
+tvision/source/platform/ansidisp.cpp:103
+```cpp
+void AnsiDisplayBase::lowlevelMoveCursorX(uint x, uint) noexcept
+{
+    // Optimized case where the cursor only moves horizontally.
+    bufWriteCSI1(x + 1, 'G');
+}
+```
+
+tvision/include/tvision/internal/ansidisp.h:146
+```cpp
+    void lowlevelMoveCursorX(uint x, uint y) noexcept override
+        { AnsiDisplayBase::lowlevelMoveCursorX(x, y); }
+```
+
+
+## lowlevelCursorSize
+
+Базовая реализация ничего не делает.
+
+tvision/include/tvision/internal/platform.h:32
+```cpp
+    virtual void lowlevelCursorSize(int /*size*/) noexcept {};
+```
+
+tvision/source/platform/ncurdisp.cpp:83
+```cpp
+void NcursesDisplay::lowlevelCursorSize(int size) noexcept
+{
+/* The caret is the keyboard cursor. If size is 0, the caret is hidden. The
+ * other possible values are from 1 to 100, theoretically, and represent the
+ * percentage of the character cell the caret fills.
+ * https://docs.microsoft.com/en-us/windows/console/console-cursor-info-str
+ *
+ * ncurses supports only three levels: invisible (0), normal (1) and
+ * very visible (2). They don't make a difference in all terminals, but
+ * we can try mapping them to the values requested by Turbo Vision. */
+    curs_set(size > 0 ? size == 100 ? 2 : 1 : 0); // Implies refresh().
+}
+```
+
+tvision/source/platform/win32con.cpp:310
+```cpp
+void Win32Display::lowlevelCursorSize(int size) noexcept
+{
+    CONSOLE_CURSOR_INFO crInfo;
+    if (size) {
+        crInfo.bVisible = TRUE;
+        crInfo.dwSize = size;
+    } else {
+        crInfo.bVisible = FALSE;
+        crInfo.dwSize = 1;
+    }
+    SetConsoleCursorInfo(io.out(), &crInfo);
+}
+```
+
+Для `AnsiDisplay` ничего не делается, но вообще-то команды такие есть в протоколе, как минимум, показать и спрятать 
+каретку - **надо доделать** ([CSI ?25l/CSI ?25h](https://ru.wikipedia.org/wiki/%D0%A3%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D0%B5_%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8_ANSI)).
+
+
+## lowlevelFlush
+
+tvision/include/tvision/internal/platform.h:33
+```cpp
+    virtual void lowlevelFlush() noexcept {};
+```
+
+tvision/source/platform/ncurdisp.cpp:81
+```cpp
+void NcursesDisplay::lowlevelFlush() noexcept { wrefresh(stdscr); }
+```
+
+tvision/source/platform/win32con.cpp:354
+```cpp
+void Win32Display::lowlevelFlush() noexcept
+{
+    io.write(buf.data(), buf.size());
+    buf.resize(0);
+}
+```
+
+tvision/source/platform/ansidisp.cpp:116
+```cpp
+void AnsiDisplayBase::lowlevelFlush() noexcept
+{
+    io.write(buf.data(), buf.size());
+    buf.clear();
+}
+```
+
+tvision/include/tvision/internal/ansidisp.h:148
+```cpp
+    void lowlevelFlush() noexcept override
+        { AnsiDisplayBase::lowlevelFlush(); }
+```
+
+
+## screenChanged
+
+tvision/include/tvision/internal/platform.h:34
+```cpp
+    virtual bool screenChanged() noexcept { return false; }
+```
+
+tvision/source/platform/termdisp.cpp:64
+```cpp
+bool TerminalDisplay::screenChanged() noexcept
+{
+    TPoint size = io.getSize();
+    bool changed = (size != lastSize);
+    lastSize = size;
+    return changed;
+}
+```
+
+tvision/source/platform/win32con.cpp:273
+```cpp
+bool Win32Display::screenChanged() noexcept
+{
+    bool changed = TerminalDisplay::screenChanged();
+    CONSOLE_FONT_INFO fontInfo;
+    if ( GetCurrentConsoleFont(io.out(), FALSE, &fontInfo)
+         && memcmp(&fontInfo, &lastFontInfo, sizeof(fontInfo)) != 0 )
+    {
+        changed = true;
+        WinWidth::reset();
+        lastFontInfo = fontInfo;
+    }
+    return changed;
+}
+```
+
+Для `NcursesDisplay` реализации нет, там каким-то образом (не разбирался детально) используется сигнал `SIGWINCH`.
 
 
 
