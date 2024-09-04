@@ -21,24 +21,25 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 #//---------------------------------------------
 
-#//---------------------------------------------
-
 ## InputStrategy и его производные
 
+
 ### class EventSource
+
+Базовый класс для InputStrategy и LinuxConsoleInput.
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`namespace tvision`/`#ifdef _WIN32`-(1)
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`class EventSource`-{}
 
-Базовый класс для InputStrategy и LinuxConsoleInput.
 
 
 ### class InputStrategy : public EventSource
 
+Базовый класс для конкретных реализаций InputStrategy.
+
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class InputStrategy : public EventSource`-{}
 
-Базовый класс для конкретных реализаций InputStrategy.
 
 
 ### class GpmInput final : public InputStrategy
@@ -58,9 +59,10 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 ### struct LinuxConsoleInput final : public EventSource
 
+Использует InputStrategy.
+
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/linuxcon.h#`struct LinuxConsoleInput final : public EventSource`-{}
 
-Использует InputStrategy.
 
 
 #//---------------------------------------------

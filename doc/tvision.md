@@ -64,10 +64,12 @@
 # Классы и структуры
 
 
-
 ## InputStrategy и его производные
 
+
 ### class EventSource
+
+Базовый класс для InputStrategy и LinuxConsoleInput.
 
 tvision/include/tvision/internal/events.h:17
 ```cpp
@@ -98,10 +100,11 @@ public:
 };
 ```
 
-Базовый класс для InputStrategy и LinuxConsoleInput.
 
 
 ### class InputStrategy : public EventSource
+
+Базовый класс для конкретных реализаций InputStrategy.
 
 tvision/include/tvision/internal/platform.h:37
 ```cpp
@@ -122,7 +125,6 @@ public:
 };
 ```
 
-Базовый класс для конкретных реализаций InputStrategy.
 
 
 ### class GpmInput final : public InputStrategy
@@ -212,6 +214,8 @@ public:
 
 ### struct LinuxConsoleInput final : public EventSource
 
+Использует InputStrategy.
+
 tvision/include/tvision/internal/linuxcon.h:18
 ```cpp
 struct LinuxConsoleInput final : public EventSource
@@ -233,7 +237,6 @@ struct LinuxConsoleInput final : public EventSource
 };
 ```
 
-Использует InputStrategy.
 
 
 
