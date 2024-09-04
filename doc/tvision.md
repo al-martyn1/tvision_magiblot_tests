@@ -69,6 +69,15 @@
 
 ### class EventSource
 
+tvision/include/tvision/internal/events.h:17
+```cpp
+#ifdef _WIN32
+using SysHandle = HANDLE;
+#else
+using SysHandle = int;
+#endif
+```
+
 tvision/include/tvision/internal/events.h:60
 ```cpp
 class EventSource

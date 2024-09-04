@@ -27,6 +27,8 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 ### class EventSource
 
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`namespace tvision`/`#ifdef _WIN32`-(1)
+
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`class EventSource`-{}
 
 Базовый класс для InputStrategy и LinuxConsoleInput.
