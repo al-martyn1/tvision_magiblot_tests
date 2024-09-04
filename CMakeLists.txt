@@ -32,10 +32,10 @@ if(STM32)
 endif()
 
 if (NOT WIN32)
-    add_compile_definitions(HAVE_STRNCASECMP) # TurboVision uses strnicmp, which is non-standard
+    # add_compile_definitions(HAVE_STRNCASECMP) # TurboVision uses strnicmp, which is non-standard
 endif()
 
-set(TV_OPTIMIZE_BUILD  OFF)
+# set(TV_OPTIMIZE_BUILD  OFF)
 set(TV_REDUCE_APP_SIZE ON)
 set(TV_BUILD_USING_GPM OFF) # prevent message: (tvision) 'gpm' library requested but not found
 
