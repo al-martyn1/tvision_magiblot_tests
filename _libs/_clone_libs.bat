@@ -24,5 +24,7 @@ goto DO_CLONE
 set PREFIX=git@%BASE%:%ACC%
 
 :DO_CLONE
+git clone --recurse-submodules %PREFIX%/marty_decimal.git      %~dp0\marty_decimal
 git clone --recurse-submodules %PREFIX%/tvision_magiblot.git   %~dp0\tvision
+git clone --recurse-submodules %PREFIX%/umba_mm_mod_umba.git   %~dp0\umba
 

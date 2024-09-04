@@ -19,6 +19,51 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 # Классы и структуры
 
+
+#//---------------------------------------------
+
+## class StdioCtl final
+
+Хранит хэндлы файловых объектов, которые используются для вывода на экран и для полчения пользовательского ввода.
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/stdioctl.h#`class StdioCtl final`-{}
+
+Для `TV_BARE_METAL` будем хранить два `int`-а - "дескрипторы" UART-портов (по факту - индексы портов), но реализация может
+не учитывать их и писать/читать в/из порт/а по своему усмотрению.
+
+Не хватает метода `read` - видимо, все просто берут дескриптор, и делают с ним, что хотят. Надо абстрагироватся от дескриптора,
+и работать через метод `read`. 
+
+Есть странные методы - `getSize` и `getFontSize`. Странные потому, что не очень понятно, почему они сюда засунуты.
+
+`getFontSize` используется в `TerminalDisplay::getScreenMode()` для установки флага `TDisplay::smFont8x8` - тоже не очень понятно, что это.
+
+`getSize` используется в `NcursesDisplay::reloadScreenInfo()`, `TerminalDisplay::screenChanged()` и `Win32Display::reloadScreenInfo()`.
+
+Реализация `UNIX`:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getSize() const noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getFontSize() const noexcept`-{}
+
+ - [console_font_op](https://coral.googlesource.com/busybox/+/refs/tags/1_15_1/console-tools/loadfont.c)
+ - [TIOCGWINSZ](https://www.opennet.ru/man.shtml?topic=tty_ioctl&category=4&russian=0)
+
+Реализация `WIN32`:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#elif defined(_WIN32)`/`TPoint StdioCtl::getSize() const noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#elif defined(_WIN32)`/`TPoint StdioCtl::getFontSize() const noexcept`-{}
+
+ - [GetConsoleScreenBufferInfo](https://learn.microsoft.com/ru-ru/windows/console/getconsolescreenbufferinfo)
+ - [GetCurrentConsoleFont](https://learn.microsoft.com/en-us/windows/console/getcurrentconsolefont)
+
+В целом, для `TV_BARE_METAL` это не нужно.
+
+Добавляемая реализация метода `read` должна будет возвращать управление сразу, без блокировки, и возвращать то количество байт, 
+которое доступно для чтения, или `0`, если в буфере ничего нет.
+
+
 #//---------------------------------------------
 
 ## InputStrategy и его производные
@@ -39,6 +84,18 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 Базовый класс для конкретных реализаций InputStrategy.
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class InputStrategy : public EventSource`-{}
+
+`getButtonCount()` - для `TV_BARE_METAL` должно возвращать 0, так как мышь мы не поддерживаем.
+
+`cursorOn()` - включение курсора (мышиного, наверное)?
+
+`cursorOff()` - выключение курсора (мышиного, наверное)?
+
+Реализации:
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Input::cursorOn() noexcept`-{}
+
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Input::cursorOff() noexcept`-{}
 
 
 
@@ -181,12 +238,6 @@ win32con.cpp:103 (ф-я Win32ConsoleStrategy::create())
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/platform.h#`class Platform`-{}
 
 Делает кучу всего, надо разбираться.
-
-
-## class StdioCtl final
-
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/stdioctl.h#`class StdioCtl final`-{}
-
 
 
 ## class DisplayBuffer

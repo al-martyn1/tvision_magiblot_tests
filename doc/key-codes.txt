@@ -1,0 +1,222 @@
+ESC-mode
+
+Без доп клавиш.
+
+Альфа-Цифра - выдет символ из раскладки, в руской раскладке похоже юникод UTF-9
+
+ESC - ESC
+F1-F12
+ESC [ 1 1 ~
+ESC [ 1 2 ~
+ESC [ 1 3 ~
+ESC [ 1 4 ~
+ESC [ 1 5 ~
+ESC [ 1 7 ~
+ESC [ 1 8 ~
+ESC [ 1 9 ~
+ESC [ 2 0 ~
+ESC [ 2 1 ~
+ESC [ 2 3 ~
+ESC [ 2 4 ~
+
+F1-F12 + Shift
+
+ESC [ 2 3 ~
+ESC [ 2 4 ~
+ESC [ 2 5 ~
+ESC [ 2 6 ~
+ESC [ 2 8 ~
+ESC [ 2 9 ~
+ESC [ 3 1 ~
+ESC [ 3 2 ~
+ESC [ 3 3 ~
+ESC [ 3 4 ~
+ESC [ 2 3 ~
+ESC [ 2 4 ~
+
+F1-F12 + Alt - Также, как и без Alt, только двойной ESC, Alt+F4 - закрытие окна терминала, не передаётся
+ESC ESC [ 1 1 ~
+ESC ESC [ 1 2 ~
+ESC ESC [ 1 3 ~
+ESC ESC [ 1 5 ~
+ESC ESC [ 1 7 ~
+ESC ESC [ 1 8 ~
+ESC ESC [ 1 9 ~
+ESC ESC [ 2 0 ~
+ESC ESC [ 2 1 ~
+ESC ESC [ 2 3 ~
+ESC ESC [ 2 4 ~
+
+
+F1-F12 + AltShift, как и с шифтом, только двойной ESC, Alt+F4 - закрытие окна терминала, не передаётся
+
+ESC ESC [ 2 3 ~
+ESC ESC [ 2 4 ~
+ESC ESC [ 2 5 ~
+ESC ESC [ 2 8 ~
+ESC ESC [ 2 9 ~
+ESC ESC [ 3 1 ~
+ESC ESC [ 3 2 ~
+ESC ESC [ 3 3 ~
+ESC ESC [ 3 4 ~
+ESC ESC [ 2 3 ~
+ESC ESC [ 2 4 ~
+
+ESC [ A - Up
+ESC [ B - Down
+ESC [ C - Right
+ESC [ D - Left
+
++Alt
+ESC ESC [ A
+ESC ESC [ B
+ESC ESC [ C
+ESC ESC [ D
+
++AltShift - как с альтом
+
+А-Ц с альтом
+ESC `
+ESC 1
+ESC 2
+ESC 3
+ESC 4
+ESC 5
+ESC q
+ESC w
+ESC e
+ESC r
+
+А-Ц +AltShift
+ESC !
+ESC @
+ESC #
+ESC Q
+ESC W
+ESC E
+ESC A
+ESC S
+ESC D
+
+0x09 Tab
+ESC [ Z ShiftTab
+0x7F - Backspace (и с Ctrl так же)
+ESC 0x7F - Backspace + Alt
+0x0D - Enter (и с Ctrl так же)
+ESC 0x0D Enter + Alt
+ESC - ESC
+
+
+ESC [ 2 ~ INS
+ESC [ 3 ~ DEL
+ESC [ 1 ~ HOME
+ESC [ 4 ~ END
+
+С альтом
+ESC ESC [ 2 ~ INS 
+ESC ESC [ 3 ~ DEL 
+ESC ESC [ 1 ~ HOME
+ESC ESC [ 4 ~ END 
+
+С контролом
+ESC O A
+ESC O B
+ESC O C
+ESC O D
+
+
+
+Ctrl+1 - ничего
+Ctrl+2 - 0x00
+Ctrl+3 - ESC
+Ctrl+4 - 0x1C
+Ctrl+5 - 0x1D
+Ctrl+6 - 0x1E
+Ctrl+7 - 0x1F
+Ctrl+8 - 0x7F
+Ctrl+9 - ничего
+
+Ctrl+QWERTY
+0x11
+0x17
+0x05
+0x12
+0x14
+0x19
+
+Ctrl+UIOP
+0x15
+0x09
+0x0F
+0x10
+
+
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+Ctrl+2 - 0x00
+
+
+Русская раскладка 
+0xD0 0xB9 - й
+0xD0 0x99 - Й
+ESC 0xD0 0xB9 + Alt
+ESC 0xD0 0x99 + AltShift
+
+
+ESC 0xD0 0xB9
+ESC 0xD0 0x99
+ESC 0xD1 0x86
+ESC 0xD1 0x83
+ESC 0xD0 0xBA
+ESC 0xD0 0xB5
+ESC 0xD0 0xBD
+ESC 0xD0 0xB3
+ESC 0xD1 0x88
+ESC 0xD1 0x89
+ESC 0xD0 0xB7
+ESC 0xD1 0x85
+ESC 0xD1 0x8A
+ESC 0xD1 0x84
+ESC 0xD1 0x8B
+ESC 0xD0 0xB2
+ESC 0xD0 0xB0
+ESC 0xD0 0xBF
+ESC 0xD1 0x80
+ESC 0xD0 0xBE
+ESC 0xD0 0xBB
+ESC 0xD0 0xB4
+ESC 0xD0 0xB6
+ESC 0xD1 0x8D
+ESC 0xD1 0x8F
+ESC 0xD1 0x87
+ESC 0xD1 0x81
+ESC 0xD0 0xBC
+ESC 0xD0 0xB8
+ESC 0xD1 0x82
+ESC 0xD1 0x8C
+ESC 0xD0 0xB1
+ESC 0xD1 0x8E
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

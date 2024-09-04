@@ -1,4 +1,6 @@
+@call :DO_GIT_JOB %1 %~dp0\marty_decimal
 @call :DO_GIT_JOB %1 %~dp0\tvision
+@call :DO_GIT_JOB %1 %~dp0\umba
 
 @exit /B
 

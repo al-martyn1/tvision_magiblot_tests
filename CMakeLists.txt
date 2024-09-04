@@ -103,6 +103,15 @@ if(STM32)
 endif()
 
 
+
+add_executable(make_keyseq_table ${SRC_ROOT}/make_keyseq_table.cpp ) # ${SRC_ROOT}/crt_stub.c
+fw_add_target_options(make_keyseq_table "UNICODE" "CONSOLE" "BIGOBJ"
+                              #"BIN" "HEX"
+                              # "FLASH"
+                              )
+target_link_libraries(make_keyseq_table PRIVATE "${COMMON_LIBS}")
+
+
 add_executable(example ${SRC_ROOT}/tv_test/example.cpp ${SRC_ROOT}/tv_test/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
 fw_add_target_options(example "UNICODE" "CONSOLE" "BIGOBJ"
                               #"BIN" "HEX"
