@@ -2,7 +2,7 @@
   "configurations" : 
   [
     {
-      "name": "Win32 Debug",
+      "name": "Host App Debug",
       "type": "cppdbg",
       "request": "launch",
       "program": "${command:cmake.launchTargetPath}",
