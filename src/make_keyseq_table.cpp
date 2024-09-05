@@ -237,10 +237,10 @@ int main(int argc, char* argv[])
     //  
     // std::cout << key.code << "\n";
 
-    for(std::uint8_t c=32; c!=0x7F; ++c)
-    {
-        std::cout << "0x" << std::hex << (unsigned)c << std::dec << "  " << (char)c << "\n";
-    }
+    // for(std::uint8_t c=32; c!=0x7F; ++c)
+    // {
+    //     std::cout << "0x" << std::hex << (unsigned)c << std::dec << "  " << (char)c << "\n";
+    // }
 
     using umba::tokenizer::payload_type;
 
@@ -287,44 +287,7 @@ int main(int argc, char* argv[])
     trieBuilder.addTokenSequence("\x1B\x1B[23~", (payload_type)kbAltF11);
     trieBuilder.addTokenSequence("\x1B\x1B[24~", (payload_type)kbAltF12);
 
-    // // Alt+Shift not supported currently
-    // trieBuilder.addTokenSequence("\x1B\x1B[23~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[24~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[25~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[26~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[28~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[29~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[31~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[32~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[33~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[34~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[23~", (payload_type));
-    // trieBuilder.addTokenSequence("\x1B\x1B[24~", (payload_type));
-
 #if 0
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
-    trieBuilder.addTokenSequence("\x1B", (payload_type));
     trieBuilder.addTokenSequence("\x1B", (payload_type));
 #endif
 
@@ -336,17 +299,17 @@ int main(int argc, char* argv[])
 // const std::array<TerminalAsciiCharInfo, 128>& getTerminalAsciiCharInfo()
 // {
 
-    cout << "#if defined(UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_DISABLE)\n"
-         << "    #define UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(p)\n"
-         << "#else\n"
-         << "    #define UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(p)  , (p)\n"
-         << "#endif\n\n";
-
-    cout << "#if defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)\n"
-         << "    #define UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(l)\n"
-         << "#else\n"
-         << "    #define UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(l)  , (l)\n"
-         << "#endif\n\n";
+    // cout << "#if defined(UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_DISABLE)\n"
+    //      << "    #define UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(p)\n"
+    //      << "#else\n"
+    //      << "    #define UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(p)  , (p)\n"
+    //      << "#endif\n\n";
+    //  
+    // cout << "#if defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)\n"
+    //      << "    #define UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(l)\n"
+    //      << "#else\n"
+    //      << "    #define UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(l)  , (l)\n"
+    //      << "#endif\n\n";
 
 
 // #if !defined(UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_DISABLE)
@@ -387,17 +350,17 @@ int main(int argc, char* argv[])
         cout << ", "; printPayloadValue(node.payload);
 
 #if !defined(UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_DISABLE)
-        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(" << node.payloadExtra << ")";
+        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INITIALIZER_LIST_INIT(" << node.payloadExtra << ")";
 #else
-        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(0)";
+        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INITIALIZER_LIST_INIT(0)";
 #endif
 
         cout << ", " << node.token; 
 
 #if !defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)
-        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(" << node.level << ")";
+        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INITIALIZER_LIST_INIT(" << node.level << ")";
 #else
-        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(0)";
+        cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INITIALIZER_LIST_INIT(0)";
 #endif
 
         cout << "}\n";
