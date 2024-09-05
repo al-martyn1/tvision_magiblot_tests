@@ -22,27 +22,46 @@ build] In file included from C:/work/projects/firmware/UP_1023_CPU_Example/Lib/F
 
 */
 
+#elif defined(__GNUC__)
+
+    #define ATTRIBUTE_WEAK    __attribute__((weak))
+
+#else
+
+    #define ATTRIBUTE_WEAK
+
+#endif
+
+ATTRIBUTE_WEAK
 void _close_r()
 {}
 
+ATTRIBUTE_WEAK
 void _fstat_r()
 {}
 
+ATTRIBUTE_WEAK
 void _getpid_r()
 {}
 
+ATTRIBUTE_WEAK
 void _isatty_r()
 {}
 
+ATTRIBUTE_WEAK
 void _kill_r()
 {}
 
+ATTRIBUTE_WEAK
 void _lseek_r()
 {}
 
+ATTRIBUTE_WEAK
 void _read_r()
 {}
 
+ATTRIBUTE_WEAK
 void _write_r()
 {}
+
 
