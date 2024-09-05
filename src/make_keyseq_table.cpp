@@ -319,7 +319,9 @@ int main(int argc, char* argv[])
 
 
     cout << "static const\n";
-    cout << "std::array<umba::tokenizer::TrieNode, " << trie.size() << "> ansiTerminalSequences = \n";
+    cout << "std::array<umba::tokenizer::TrieNode, " << trie.size() << "> ansiTerminalSequences\n{\n";
+
+    cout << "\n// parendIdx, lookupStartIdx, chunkSize, childsIdx[, extra], tokenId[, level]\n\n";
 
     auto printTrieIndex = [&](UMBA_TOKENIZER_TRIE_INDEX_TYPE idx)
     {
@@ -367,7 +369,7 @@ int main(int argc, char* argv[])
 
     }
 
-    cout << "};\n";
+    cout << "}\n};\n\n";
 
     return 0;
 }

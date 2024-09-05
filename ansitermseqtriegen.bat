@@ -1,0 +1,1 @@
+".out\GCC 13.2 MinGW\win32-x64\Debug\ansitermseqtriegen.exe"  > _libs\tvision\include\tvision\umba\ansiterm\seqtrie.h
