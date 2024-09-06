@@ -45,10 +45,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif() # GNU
 
 
+add_compile_definitions(USE_UMBA_LOUT_COUT)
+
 
 # Подсасываем библиотеки
 add_subdirectory("${LIB_ROOT}/tvision")
-# add_subdirectory("${LIB_ROOT}/umba")
+add_subdirectory("${LIB_ROOT}/sfmt")
+add_subdirectory("${LIB_ROOT}/umba")
 
 
 # C/C++ language settings
@@ -61,9 +64,7 @@ set(CMAKE_CXX_EXTENSIONS Off)
 
 
 
-
-
-set(COMMON_LIBS tvision::tvision)
+set(COMMON_LIBS sfmt::sfmt umba::umba tvision::tvision)
 
 include_directories(${LIB_ROOT})
 
@@ -103,24 +104,39 @@ if(STM32)
 endif()
 
 
-
-add_executable(ansitermseqtriegen ${SRC_ROOT}/ansitermseqtriegen.cpp ) # ${SRC_ROOT}/crt_stub.c
-fw_add_target_options(ansitermseqtriegen "UNICODE" "CONSOLE" "BIGOBJ"
+#------- ansitermseqparser_test
+set(TARGET ansitermseqparser_test)
+add_executable(${TARGET} ${SRC_ROOT}/${TARGET}.cpp ) # ${SRC_ROOT}/crt_stub.c
+fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
                               #"BIN" "HEX"
                               # "FLASH"
                               )
-target_link_libraries(ansitermseqtriegen PRIVATE "${COMMON_LIBS}")
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
 
 
-add_executable(example ${SRC_ROOT}/tv_test/example.cpp ${SRC_ROOT}/tv_test/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
-fw_add_target_options(example "UNICODE" "CONSOLE" "BIGOBJ"
+
+#------- ansitermseqtriegen
+set(TARGET ansitermseqtriegen)
+add_executable(${TARGET} ${SRC_ROOT}/${TARGET}.cpp ) # ${SRC_ROOT}/crt_stub.c
+fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
                               #"BIN" "HEX"
                               # "FLASH"
                               )
-target_link_libraries(example PRIVATE "${COMMON_LIBS}")
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+#------- example
+set(TARGET example)
+add_executable(${TARGET} ${SRC_ROOT}/tv_test/${TARGET}.cpp ${SRC_ROOT}/tv_test/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
+fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
+                              #"BIN" "HEX"
+                              # "FLASH"
+                              )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
 if(STM32)
-    target_compile_definitions(example PRIVATE "HSE_VALUE=16000000" "MCU_PLL_M=16" "MCU_PLL_Q=7" "MCU_PLL_N=360" "MCU_PLL_P=2")
+    target_compile_definitions(${TARGET} PRIVATE "HSE_VALUE=16000000" "MCU_PLL_M=16" "MCU_PLL_Q=7" "MCU_PLL_N=360" "MCU_PLL_P=2")
 endif()
+
 
 
 # add_executable(makerez ${EXAMPLES}/progba/makerez.cpp ${EXAMPLES}/progba/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
