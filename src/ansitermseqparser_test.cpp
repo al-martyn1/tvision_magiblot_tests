@@ -22,6 +22,7 @@ int main(int argc, char* argv[])
 
     auto validKeyHandler = [&](ushort keyCode, ushort controlKeyState)
     {
+        umba::lout << "KeyCode: " << umba::omanip::hex << keyCode << ", ControlKeyState: " << umba::omanip::hex << controlKeyState << "\n";
         // std::cout << "KeyCode: ";
         //  /* tvision:: */ printKeyCode(std::cout, keyCode);
         // std::cout << ";  ControlKeyState: ";

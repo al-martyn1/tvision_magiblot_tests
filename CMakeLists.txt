@@ -125,6 +125,16 @@ fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
 target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
 
 
+#------- ansitermseqtriegraphgen
+set(TARGET ansitermseqtriegraphgen)
+add_executable(${TARGET} ${SRC_ROOT}/${TARGET}.cpp ) # ${SRC_ROOT}/crt_stub.c
+fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
+                              #"BIN" "HEX"
+                              # "FLASH"
+                              )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
 #------- example
 set(TARGET example)
 add_executable(${TARGET} ${SRC_ROOT}/tv_test/${TARGET}.cpp ${SRC_ROOT}/tv_test/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
