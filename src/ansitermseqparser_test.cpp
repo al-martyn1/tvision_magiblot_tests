@@ -8,6 +8,7 @@
 #include <tvision/util.h>
 //
 #include <tvision/umba/ansiterm/seqparser.h>
+#include <tvision/umba/ansiterm/util.h>
 
 #include "umba/simple_formatter.h"
 
@@ -17,12 +18,21 @@
 using std::cout;
 using std::cerr;
 
+
+
 int main(int argc, char* argv[])
 {
 
     auto validKeyHandler = [&](ushort keyCode, ushort controlKeyState)
     {
-        umba::lout << "KeyCode: " << umba::omanip::hex << keyCode << ", ControlKeyState: " << umba::omanip::hex << controlKeyState << "\n";
+        umba::lout << "KeyCode: ";
+        tvision::umba::ansiterm::ansiTermPrintKeyCode(umba::lout, keyCode, controlKeyState);
+        umba::lout << ", ControlKeyState: ";
+        //<< umba::omanip::hex << keyCode << ", ControlKeyState: ";
+        // << umba::omanip::hex << controlKeyState 
+        tvision::umba::ansiterm::ansiTermPrintControlKeyCode(umba::lout, controlKeyState);
+        umba::lout << "\n";
+
         // std::cout << "KeyCode: ";
         //  /* tvision:: */ printKeyCode(std::cout, keyCode);
         // std::cout << ";  ControlKeyState: ";
@@ -45,12 +55,13 @@ int main(int argc, char* argv[])
         umba::lout << umba::omanip::flush;
     };
 
-    auto parser = tvision::ansiterm::AnsiTerminalKeySequenceParser(validKeyHandler, invalidKeyHandler);
+    auto parser = tvision::umba::ansiterm::AnsiTerminalKeySequenceParser(validKeyHandler, invalidKeyHandler);
 
-    std::string str = "\x1B[24~\x1B\x1B[19~";
+    std::string str = "\x1B[24~\x1B\x1B[19~ABCD";
 
     parser.putData((const uchar*)str.data(), str.size());
     parser.putTimeout();
+
 
 
     // tvision::ansiterm
