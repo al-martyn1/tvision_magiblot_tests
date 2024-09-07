@@ -45,7 +45,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif() # GNU
 
 
-add_compile_definitions(USE_UMBA_LOUT_COUT)
+if(NOT STM32)
+    add_compile_definitions(USE_UMBA_LOUT_COUT)
+else()
+    add_compile_definitions(TV_DISABLE_TV_PLATFORM_STRINGS_STRUPR)
+    add_compile_definitions(TV_DISABLE_TV_PLATFORM_STRINGS_ITOA)
+endif()  # STM32
 
 
 # Подсасываем библиотеки
@@ -104,6 +109,10 @@ if(STM32)
 endif()
 
 
+#-------
+
+if(NOT STM32)
+
 #------- ansitermseqparser_test
 set(TARGET ansitermseqparser_test)
 add_executable(${TARGET} ${SRC_ROOT}/${TARGET}.cpp ) # ${SRC_ROOT}/crt_stub.c
@@ -134,6 +143,9 @@ fw_add_target_options(${TARGET} "UNICODE" "CONSOLE" "BIGOBJ"
                               )
 target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
 
+#-------
+
+endif()
 
 #------- example
 set(TARGET example)
