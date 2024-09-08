@@ -1,0 +1,265 @@
+cmake_minimum_required(VERSION 3.17)
+
+project(ES_4007_BMCL C CXX ASM)
+
+# Fill in the target MCU here
+set(MCU "STM32F429II")
+
+# CMake options
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
+
+include(.cmake/common.cmake)
+# Framework нам пока не нужен
+include(.cmake/framework.cmake)
+
+
+# Настройка TurboVision под терминал
+if(STM32)
+    set(TV_BARE_METAL ON)
+    set(TV_NO_NCURSES ON)
+    set(TV_TERMINAL ON)
+    set(TV_NO_FILESYSTEM 1)
+    set(TV_NO_LOCALE_SUPPORT 1)
+    fw_stm32_setup_mcu_options()
+    set(TV_MCU_COMPILE_DEFINITIONS ${MCU_COMPILE_DEFINITIONS})
+    set(TV_MCU_COMPILE_OPTIONS     ${MCU_COMPILE_OPTIONS})
+    set(TV_MCU_LINK_OPTIONS        ${MCU_LINK_OPTIONS})
+endif()
+
+set(TV_REDUCE_APP_SIZE ON)
+
+# Disable some warnings in TurboVision
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options("-Werror=return-type" )
+    add_compile_options("-Wno-psabi")
+    add_compile_options("-Wno-volatile")
+endif() # GNU
+
+add_compile_definitions(TV_DISABLE_TV_PLATFORM_STRINGS_STRUPR)
+add_compile_definitions(TV_DISABLE_TV_PLATFORM_STRINGS_ITOA)
+
+
+# Подсасываем библиотеки
+add_subdirectory("${LIB_ROOT}/tvision")
+
+# Пока ручками путь к инклюдам добавляем, потому как библиотеку пока не используем
+# include_directories(${LIB_ROOT}/tvision/include)
+
+
+
+# C/C++ language settings
+# https://matgomes.com/setting-cpp-standard-cmake/
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED On)
+set(CMAKE_C_EXTENSIONS Off)
+set(CMAKE_CXX_EXTENSIONS Off)
+
+
+# Common C/C++ compiler options
+# add_compile_options("-ffreestanding")
+add_compile_options("-fno-exceptions")
+add_compile_options("-ffunction-sections")
+add_compile_options("-Werror=return-type" )
+set(CMAKE_CXX_FLAGS "-Wno-register") # not valid for C
+set(CMAKE_CXX_FLAGS "-fno-rtti") # not valid for C
+
+
+
+
+#-Og -g3 ?
+set(CMAKE_CXX_FLAGS_DEBUG "-g -gdwarf-4 -O0")
+set(CMAKE_C_FLAGS_DEBUG   "-g -gdwarf-4 -O0")
+set(CMAKE_CXX_FLAGS_RELEASE  "-O3")
+set(CMAKE_C_FLAGS_RELEASE    "-O3")
+
+add_compile_definitions(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:FW_EXTENDED_ERROR_TRACKING>")
+
+
+add_compile_options("-ffunction-sections") # отдельная секция под каждую функцию
+add_link_options("-Wl,-gc-sections")       # выкидываем неиспользуемые секции. Следует быть осторожным, иногда это не то, что на самом деле хочется.
+
+# Set up debugging
+if(STM32)
+    set(OPENOCD_TARGET_CONFIG "target/stm32f4x.cfg")
+endif()
+
+
+
+if(STM32)
+    add_compile_definitions("STM32F429II")
+    #add_compile_definitions("STM32F429xx")
+    add_compile_definitions("STM32F429_439xx")
+endif()
+
+
+# Задаем устройство, для которого собираем прошивку
+add_compile_definitions("ES_4007_BMCL")
+
+# Подсасываем библиотеки
+add_subdirectory(${LIB_ROOT}/sfmt)
+add_subdirectory(${LIB_ROOT}/umba)
+
+set(COMMON_LIBS sfmt::sfmt umba::umba tvision::tvision) # tvision::tvision
+
+
+# Project include paths
+set(INCLUDES
+  ${FRAMEWORK_INCLUDE_DIRECTORIES}
+  ${LIB_ROOT}
+  ${SRC_ROOT}
+  "${SRC_ROOT}/Core"
+  "${SRC_ROOT}/Core/System"
+  "${SRC_ROOT}/Core/Communication"
+)
+
+
+set(STM32_SOURCES
+  "${SRC_ROOT}/Core/System/HardfaultHandler.cpp"
+  "${SRC_ROOT}/Core/System/startuptask.cpp"
+  "${SRC_ROOT}/stubs/crt_stub.c"
+  "${SRC_ROOT}/tv_test/example.cpp" "${SRC_ROOT}/tv_test/tprogbar.cpp"
+)
+
+
+set(SOURCES
+  "${FRAMEWORK_SOURCES}"
+  "${SRC_ROOT}/Core/main.cpp"
+  "${SRC_ROOT}/Core/Terminal/terminal.cpp"
+)
+
+
+set(STM32_STARTUP_SOURCES  "${SRC_ROOT}/Core/System/startup_stm32f429xx.c")
+
+if(STM32)
+    set(SOURCES ${SOURCES} ${STM32_STARTUP_SOURCES} ${STM32_SOURCES})
+endif()
+
+add_compile_definitions(${TV_DEFINITIONS})
+
+
+
+set(USE_BOOTLOADER 0)
+
+
+if(STM32)
+if(USE_BOOTLOADER)
+
+    set(BTLDR_SRC_ROOT "${LIB_ROOT}/_bootloader/src")
+    set(BTLDR_LIB_ROOT "${LIB_ROOT}/_bootloader/lib")
+
+    set(BOOTLOADER_SOURCES 
+        # Main sources
+        "${BTLDR_SRC_ROOT}/system_stm32f4xx.c"
+        "${BTLDR_SRC_ROOT}/main.cpp"
+        )
+
+
+    #fw_stm32_init_mcu_hal_sources( "${BTLDR_LIB_ROOT}/HAL/Drivers" )
+    fw_stm32_init_mcu_spl_sources( "${BTLDR_LIB_ROOT}/SPL" )
+
+    # Bootloader
+    set(LINKER_SCRIPT "${BTLDR_SRC_ROOT}/BootloaderLS.lds")
+    add_executable(bootloader_${PROJECT_NAME}
+                  # ${MCU_HAL_SOURCES}
+                  ${MCU_SPL_SOURCES}
+                  ${BOOTLOADER_SOURCES}
+                  )
+    fw_add_target_options(bootloader_${PROJECT_NAME}
+                          "UNICODE"
+                          "CONSOLE"
+                          "BIGOBJ"
+                          "BIN"
+                          "HEX"
+                          # "FLASH"
+                          "SIZE"
+                          )
+
+
+    target_include_directories( bootloader_${PROJECT_NAME} PRIVATE 
+
+                              "${BTLDR_LIB_ROOT}"
+                              "${BTLDR_LIB_ROOT}/AK"
+                              "${BTLDR_LIB_ROOT}/AK/ak_inc/fw_inc"
+                              "${BTLDR_LIB_ROOT}/AK/cfg"
+
+                              "${BTLDR_SRC_ROOT}"
+
+                              "${MCU_SPL_INCLUDE}"
+                              "${BTLDR_LIB_ROOT}/CMSIS_StdPeriph/${MCU_FAMILY}/Device/ST/STM32${MCU_FAMILY}xx/Include"
+                              "${BTLDR_LIB_ROOT}/CMSIS_StdPeriph/${MCU_FAMILY}/Include"
+                              "${BTLDR_LIB_ROOT}/CMSIS_StdPeriph/${MCU_FAMILY}/RTOS/Template"
+
+                              #"${BTLDR_LIB_ROOT}/AK/v1_6_3_2/system/inc/mcu"
+                              #"${BTLDR_LIB_ROOT}/AK/ak_inc/system/inc/cmsis" 
+                              #"${BTLDR_LIB_ROOT}/AK/ak_inc/system/inc/mcu"
+                              # "${BTLDR_LIB_ROOT}/AK/mcu"
+                              )
+
+    target_compile_definitions(bootloader_${PROJECT_NAME} PRIVATE
+                              "ARM_MATH_CM4"
+                              "flash_layout"
+                              "STM32F429II"
+                              )
+
+endif()  # USE_BOOTLOADER
+endif()  # STM32
+
+
+if(USE_BOOTLOADER)
+    set(LINKER_SCRIPT "${SRC_ROOT}/Core/System/FirmwareLS.lds")
+else()
+    set(LINKER_SCRIPT "${SRC_ROOT}/Core/System/FirmwareLS_no_bootloader.lds")
+endif()
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+fw_add_target_options(${PROJECT_NAME}
+                      "UNICODE"
+                      "CONSOLE"
+                      "BIGOBJ"
+                      "BIN"
+                      "HEX"
+                      # "FLASH"
+                      "SIZE"
+                      )
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDES})
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+     COMMAND ${CMAKE_SIZE} ${PROJECT_NAME}.elf
+     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+     DEPENDS ${PROJECT_NAME}.elf
+     )
+
+# CMAKE_SIZE
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE "ES_4007_BMCL")
+target_compile_definitions(${PROJECT_NAME} PRIVATE "FIRMWARE_TEST_MODE")
+target_compile_definitions(${PROJECT_NAME} PRIVATE ${TV_DEFINITIONS})
+# add_compile_definitions(${TV_DEFINITIONS})
+target_link_libraries(${PROJECT_NAME} PRIVATE "${COMMON_LIBS}")
+
+
+
+if(STM32)
+    # Настраиваем TheFramework
+    target_link_options(${PROJECT_NAME} PRIVATE "-Wl,--defsym=FW_HDR_FLAGS=0x7")
+    
+    # Настраиваем раскладку флешки/срама
+    target_compile_definitions(${PROJECT_NAME} PRIVATE "flash_layout")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE "sram_layout")
+    
+    # Настраиваем тактирование
+    target_compile_definitions(${PROJECT_NAME} PRIVATE "HSE_VALUE=16000000" "MCU_PLL_M=16" "MCU_PLL_Q=7" "MCU_PLL_N=360" "MCU_PLL_P=2")
+endif()
+
+
+
+
+
+
+
+
+
+
