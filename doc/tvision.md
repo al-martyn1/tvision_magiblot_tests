@@ -1,6 +1,7 @@
 # Заметки по портированию TurboVision (magiblot) на голое железо
 
   - [Классы и структуры](#user-content-классы-и-структуры)
+    - [class StdioCtl final](#user-content-class-stdioctl-final)
     - [InputStrategy и его производные](#user-content-inputstrategy-и-его-производные)
       - [class EventSource](#user-content-class-eventsource)
       - [class InputStrategy : public EventSource](#user-content-class-inputstrategy--public-eventsource)
@@ -22,7 +23,6 @@
       - [class UnixConsoleStrategy : public ConsoleStrategy](#user-content-class-unixconsolestrategy--public-consolestrategy)
       - [Platform::createConsole() - создание консоли](#user-content-platformcreateconsole---создание-консоли)
     - [class Platform](#user-content-class-platform)
-    - [class StdioCtl final](#user-content-class-stdioctl-final)
     - [class DisplayBuffer](#user-content-class-displaybuffer)
     - [class THardwareInfo](#user-content-class-thardwareinfo)
     - [struct InputState](#user-content-struct-inputstate)
@@ -62,6 +62,171 @@
 
 
 # Классы и структуры
+
+
+
+## class StdioCtl final
+
+Хранит хэндлы файловых объектов, которые используются для вывода на экран и для полчения пользовательского ввода.
+
+tvision/include/tvision/internal/stdioctl.h:14
+```cpp
+class StdioCtl final
+{
+#ifdef _WIN32
+    enum { input = 0, startupOutput = 1, activeOutput = 2 };
+    struct
+    {
+        HANDLE handle {INVALID_HANDLE_VALUE};
+        bool owning {false};
+    } cn[3];
+    bool ownsConsole {false};
+#else
+    int fds[2] {-1, -1};
+    FILE *files[2] {nullptr, nullptr};
+    bool ownsFiles {false};
+#endif // _WIN32
+
+    static StdioCtl *instance;
+
+    StdioCtl() noexcept;
+    ~StdioCtl();
+
+public:
+
+    // On Windows, the StdioCtl instance is created every time the alternate
+    // screen buffer is enabled and it is destroyed when restoring the console.
+    // On Unix, the StdioCtl instance is created just once at the beginning
+    // of the program execution (in static initialization) and destroyed when
+    // exiting the program.
+
+    // Creates a global instance if none exists, and returns it.
+    static StdioCtl &getInstance() noexcept;
+    // Destroys the global instance if it exists.
+    static void destroyInstance() noexcept;
+
+    void write(const char *data, size_t bytes) const noexcept;
+    TPoint getSize() const noexcept;
+    TPoint getFontSize() const noexcept;
+
+#ifdef _WIN32
+    HANDLE in() const noexcept { return cn[input].handle; }
+    HANDLE out() const noexcept { return cn[activeOutput].handle; }
+#else
+    int in() const noexcept { return fds[0]; }
+    int out() const noexcept { return fds[1]; }
+    FILE *fin() const noexcept { return files[0]; }
+    FILE *fout() const noexcept { return files[1]; }
+#ifdef __linux__
+    bool isLinuxConsole() const noexcept;
+#endif
+#endif // _WIN32
+};
+```
+
+Для `TV_BARE_METAL` будем хранить два `int`-а - "дескрипторы" UART-портов (по факту - индексы портов), но реализация может
+не учитывать их и писать/читать в/из порт/а по своему усмотрению.
+
+Не хватает метода `read` - видимо, все просто берут дескриптор, и делают с ним, что хотят. Надо абстрагироватся от дескриптора,
+и работать через метод `read`. 
+
+Есть странные методы - `getSize` и `getFontSize`. Странные потому, что не очень понятно, почему они сюда засунуты.
+
+`getFontSize` используется в `TerminalDisplay::getScreenMode()` для установки флага `TDisplay::smFont8x8` - тоже не очень понятно, что это.
+
+`getSize` используется в `NcursesDisplay::reloadScreenInfo()`, `TerminalDisplay::screenChanged()` и `Win32Display::reloadScreenInfo()`.
+
+Реализация `UNIX`:
+
+tvision/source/platform/stdioctl.cpp:81
+```cpp
+TPoint StdioCtl::getSize() const noexcept
+{
+    struct winsize w;
+    for (int fd : fds)
+    {
+        if (ioctl(fd, TIOCGWINSZ, &w) != -1)
+        {
+            int env_col = getEnv<int>("COLUMNS", INT_MAX);
+            int env_row = getEnv<int>("LINES", INT_MAX);
+            return {
+                min(max(w.ws_col, 0), max(env_col, 0)),
+                min(max(w.ws_row, 0), max(env_row, 0)),
+            };
+        }
+    }
+    return {0, 0};
+}
+```
+
+tvision/source/platform/stdioctl.cpp:99
+```cpp
+TPoint StdioCtl::getFontSize() const noexcept
+{
+#ifdef KDFONTOP
+    struct console_font_op cfo {};
+    cfo.op = KD_FONT_OP_GET;
+    cfo.width = cfo.height = 32;
+    for (int fd : fds)
+        if (ioctl(fd, KDFONTOP, &cfo) != -1)
+            return {
+                max(cfo.width, 0),
+                max(cfo.height, 0),
+            };
+#endif
+    struct winsize w;
+    for (int fd : fds)
+        if (ioctl(fd, TIOCGWINSZ, &w) != -1)
+            return {
+                w.ws_xpixel / max(w.ws_col, 1),
+                w.ws_ypixel / max(w.ws_row, 1),
+            };
+    return {0, 0};
+}
+```
+
+ - [console_font_op](https://coral.googlesource.com/busybox/+/refs/tags/1_15_1/console-tools/loadfont.c)
+ - [TIOCGWINSZ](https://www.opennet.ru/man.shtml?topic=tty_ioctl&category=4&russian=0)
+
+Реализация `WIN32`:
+
+tvision/source/platform/stdioctl.cpp:333
+```cpp
+TPoint StdioCtl::getSize() const noexcept
+{
+    CONSOLE_SCREEN_BUFFER_INFO sbInfo;
+    auto &srWindow = sbInfo.srWindow;
+    if (GetConsoleScreenBufferInfo(out(), &sbInfo))
+        return {
+            max(srWindow.Right - srWindow.Left + 1, 0),
+            max(srWindow.Bottom - srWindow.Top + 1, 0),
+        };
+    return {0, 0};
+}
+```
+
+tvision/source/platform/stdioctl.cpp:345
+```cpp
+TPoint StdioCtl::getFontSize() const noexcept
+{
+    CONSOLE_FONT_INFO fontInfo;
+    if (GetCurrentConsoleFont(out(), FALSE, &fontInfo))
+        return {
+            fontInfo.dwFontSize.X,
+            fontInfo.dwFontSize.Y,
+        };
+    return {0, 0};
+}
+```
+
+ - [GetConsoleScreenBufferInfo](https://learn.microsoft.com/ru-ru/windows/console/getconsolescreenbufferinfo)
+ - [GetCurrentConsoleFont](https://learn.microsoft.com/en-us/windows/console/getcurrentconsolefont)
+
+В целом, для `TV_BARE_METAL` это не нужно.
+
+Добавляемая реализация метода `read` должна будет возвращать управление сразу, без блокировки, и возвращать то количество байт, 
+которое доступно для чтения, или `0`, если в буфере ничего нет.
+
 
 
 ## InputStrategy и его производные
@@ -123,6 +288,34 @@ public:
     virtual void cursorOn() noexcept {}
     virtual void cursorOff() noexcept {}
 };
+```
+
+`getButtonCount()` - для `TV_BARE_METAL` должно возвращать 0, так как мышь мы не поддерживаем.
+
+`cursorOn()` - включение курсора (мышиного, наверное)?
+
+`cursorOff()` - выключение курсора (мышиного, наверное)?
+
+Реализации:
+
+tvision/source/platform/win32con.cpp:195
+```cpp
+void Win32Input::cursorOn() noexcept
+{
+    DWORD consoleMode = 0;
+    GetConsoleMode(io.in(), &consoleMode);
+    SetConsoleMode(io.in(), consoleMode | ENABLE_MOUSE_INPUT);
+}
+```
+
+tvision/source/platform/win32con.cpp:202
+```cpp
+void Win32Input::cursorOff() noexcept
+{
+    DWORD consoleMode = 0;
+    GetConsoleMode(io.in(), &consoleMode);
+    SetConsoleMode(io.in(), consoleMode & ~ENABLE_MOUSE_INPUT);
+}
 ```
 
 
@@ -744,65 +937,6 @@ public:
 ```
 
 Делает кучу всего, надо разбираться.
-
-
-## class StdioCtl final
-
-tvision/include/tvision/internal/stdioctl.h:14
-```cpp
-class StdioCtl final
-{
-#ifdef _WIN32
-    enum { input = 0, startupOutput = 1, activeOutput = 2 };
-    struct
-    {
-        HANDLE handle {INVALID_HANDLE_VALUE};
-        bool owning {false};
-    } cn[3];
-    bool ownsConsole {false};
-#else
-    int fds[2] {-1, -1};
-    FILE *files[2] {nullptr, nullptr};
-    bool ownsFiles {false};
-#endif // _WIN32
-
-    static StdioCtl *instance;
-
-    StdioCtl() noexcept;
-    ~StdioCtl();
-
-public:
-
-    // On Windows, the StdioCtl instance is created every time the alternate
-    // screen buffer is enabled and it is destroyed when restoring the console.
-    // On Unix, the StdioCtl instance is created just once at the beginning
-    // of the program execution (in static initialization) and destroyed when
-    // exiting the program.
-
-    // Creates a global instance if none exists, and returns it.
-    static StdioCtl &getInstance() noexcept;
-    // Destroys the global instance if it exists.
-    static void destroyInstance() noexcept;
-
-    void write(const char *data, size_t bytes) const noexcept;
-    TPoint getSize() const noexcept;
-    TPoint getFontSize() const noexcept;
-
-#ifdef _WIN32
-    HANDLE in() const noexcept { return cn[input].handle; }
-    HANDLE out() const noexcept { return cn[activeOutput].handle; }
-#else
-    int in() const noexcept { return fds[0]; }
-    int out() const noexcept { return fds[1]; }
-    FILE *fin() const noexcept { return files[0]; }
-    FILE *fout() const noexcept { return files[1]; }
-#ifdef __linux__
-    bool isLinuxConsole() const noexcept;
-#endif
-#endif // _WIN32
-};
-```
-
 
 
 ## class DisplayBuffer
