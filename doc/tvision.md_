@@ -75,7 +75,7 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 Базовый класс для InputStrategy и LinuxConsoleInput.
 
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`namespace tvision`/`#ifdef _WIN32`-(1)
+#// !insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`namespace tvision`/`#ifdef _WIN32`-(1)
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/events.h#`class EventSource`-{}
 

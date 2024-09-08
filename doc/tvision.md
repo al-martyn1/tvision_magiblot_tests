@@ -246,9 +246,6 @@ TPoint StdioCtl::getFontSize() const noexcept
 
 Базовый класс для InputStrategy и LinuxConsoleInput.
 
-tvision/include/tvision/internal/events.h:0
-```cpp
-```
 
 tvision/include/tvision/internal/events.h:169
 ```cpp
