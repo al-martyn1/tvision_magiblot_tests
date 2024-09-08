@@ -42,9 +42,11 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 Реализация `UNIX`:
 
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getSize() const noexcept`-{}
+#// !insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getSize() const noexcept`-{}
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#elif defined(_TV_UNIX)`/`TPoint StdioCtl::getSize() const noexcept`-{}
 
-#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getFontSize() const noexcept`-{}
+#// !insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#ifdef _TV_UNIX`/`TPoint StdioCtl::getFontSize() const noexcept`-{}
+#!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/stdioctl.cpp#`#elif defined(_TV_UNIX)`/`TPoint StdioCtl::getFontSize() const noexcept`-{}
 
  - [console_font_op](https://coral.googlesource.com/busybox/+/refs/tags/1_15_1/console-tools/loadfont.c)
  - [TIOCGWINSZ](https://www.opennet.ru/man.shtml?topic=tty_ioctl&category=4&russian=0)
