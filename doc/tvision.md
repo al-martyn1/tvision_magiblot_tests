@@ -1265,6 +1265,9 @@ GCC - основной компилятор для железа (может бы
 Доплнительно реализацию каждого метода обкладываем ifdef'ами вида `TV_BARE_METAL_DISPLAY_method_name_IMPL_DISABLE` - 
 для того, чтобы можно было удалить дефолтную реализацию из библиотеки под корень, если что-то пойдёт не так.
 
+`TV_BARE_METAL_TERMINAL` - определяем, если нам нужна реализация ANSI-терминала поверх `BareMetallDisplay`, 
+а не сам `BareMetallDisplay`.
+
 **getScreenSize** - будет возвращать значение, которое сохранено вызовом reloadScreenInfo.
 
 **reloadScreenInfo** - `TV_BARE_METAL_DISPLAY_SIZE_WIDTH`=80/132, `TV_BARE_METAL_DISPLAY_SIZE_HEIGHT`=25/40, 
