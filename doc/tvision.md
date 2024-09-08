@@ -33,6 +33,7 @@
     - [TVISION_ESCDELAY](#user-content-tvision_escdelay)
   - [Резюме по DisplayStrategy](#user-content-резюме-по-displaystrategy)
     - [Методы DisplayStrategy](#user-content-методы-displaystrategy)
+    - [Реализация BareMetallDisplay](#user-content-реализация-baremetalldisplay)
     - [getScreenSize](#user-content-getscreensize)
     - [getCaretSize](#user-content-getcaretsize)
     - [clearScreen](#user-content-clearscreen)
@@ -1250,7 +1251,26 @@ TVISION_MAX_FPS
  - `void lowlevelMoveCursorX(uint x, uint y)` - AnsiDisplay переопределяет.
  - `void lowlevelCursorSize(int /*size*/)` - 
  - `void lowlevelFlush()` - AnsiDisplay переопределяет.
- - `bool screenChanged()` - 
+ - `bool screenChanged()` - нужно вернуть false - размер окна в MCU не меняется.
+
+
+## Реализация BareMetallDisplay
+
+Без задания макроса `TV_BARE_METAL` - ничего не реализуется.
+
+Для GCC к реализации методов добавляем `attribute weak`.
+
+GCC - основной компилятор для железа (может быть ещё CLang, но он как GCC и вроде совсем-слвсем мимикрирует).
+
+Доплнительно реализацию каждого метода обкладываем ifdef'ами вида `TV_BARE_METAL_DISPLAY_method_name_IMPL_DISABLE`.
+
+**getScreenSize** - будет возвращать значение, которое сохранено вызовом reloadScreenInfo.
+
+**reloadScreenInfo** - `TV_BARE_METAL_DISPLAY_SIZE_WIDTH`=80/132, `TV_BARE_METAL_DISPLAY_SIZE_HEIGHT`=25/40, 
+`TV_BARE_METAL_DISPLAY_SIZE_80_25`, `TV_BARE_METAL_DISPLAY_SIZE_132_40`, `TV_BARE_METAL_DISPLAY_SIZE_CUSTOM`
+
+**getScreenMode** - тырим из `TerminalDisplay`, только без `getFontSize`.
+
 
 
 ## getScreenSize
