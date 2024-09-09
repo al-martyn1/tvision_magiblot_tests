@@ -1,3 +1,4 @@
+arm_none_eabi_crt_stub
 mcu.h
 stm32_drivers.h
 marty_decimal
