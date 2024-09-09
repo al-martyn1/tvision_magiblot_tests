@@ -65,7 +65,8 @@ add_subdirectory("${LIB_ROOT}/umba")
 # C/C++ language settings
 # https://matgomes.com/setting-cpp-standard-cmake/
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
+# set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 set(CMAKE_C_EXTENSIONS Off)
 set(CMAKE_CXX_EXTENSIONS Off)
