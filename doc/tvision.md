@@ -1,4 +1,4 @@
-# Заметки по портированию TurboVision (magiblot) на голое железо
+# Заметки по портированию TurboVision (magiblot) на голенькое железо
 
   - [Классы и структуры](#user-content-классы-и-структуры)
     - [class StdioCtl final](#user-content-class-stdioctl-final)
@@ -113,6 +113,8 @@ public:
     // For bare metal platform there is no standard implementation of write/read methods
     // User must implement it in his project itself
     void read(char *data, size_t bytesToRead, size_t *pBytesReaded) const noexcept;
+    TPoint getSize() const noexcept; // { return TPoint{40,10}; }
+    TPoint getFontSize() const noexcept; // { return TPoint{8,8}; }
 #else
     TPoint getSize() const noexcept;
     TPoint getFontSize() const noexcept;
@@ -149,7 +151,7 @@ public:
 
 Реализация `UNIX`:
 
-tvision/source/platform/stdioctl.cpp:96
+tvision/source/platform/stdioctl.cpp:107
 ```cpp
 TPoint StdioCtl::getSize() const noexcept
 {
@@ -170,7 +172,7 @@ TPoint StdioCtl::getSize() const noexcept
 }
 ```
 
-tvision/source/platform/stdioctl.cpp:114
+tvision/source/platform/stdioctl.cpp:125
 ```cpp
 TPoint StdioCtl::getFontSize() const noexcept
 {
@@ -201,7 +203,7 @@ TPoint StdioCtl::getFontSize() const noexcept
 
 Реализация `WIN32`:
 
-tvision/source/platform/stdioctl.cpp:348
+tvision/source/platform/stdioctl.cpp:359
 ```cpp
 TPoint StdioCtl::getSize() const noexcept
 {
@@ -216,7 +218,7 @@ TPoint StdioCtl::getSize() const noexcept
 }
 ```
 
-tvision/source/platform/stdioctl.cpp:360
+tvision/source/platform/stdioctl.cpp:371
 ```cpp
 TPoint StdioCtl::getFontSize() const noexcept
 {
@@ -286,6 +288,8 @@ public:
     }
 
     virtual ~InputStrategy() {}
+
+    virtual void pollInput() noexcept {}
 
     virtual int getButtonCount() noexcept { return 0; }
     virtual void cursorOn() noexcept {}
@@ -692,7 +696,7 @@ protected:
 
 ### struct ConsoleStrategy
 
-tvision/include/tvision/internal/platform.h:53
+tvision/include/tvision/internal/platform.h:55
 ```cpp
 struct ConsoleStrategy
 {
@@ -834,11 +838,20 @@ public:
 
 ### Platform::createConsole() - создание консоли
 
-tvision/source/platform/platfcon.cpp:19
+tvision/source/platform/platfcon.cpp:24
 ```cpp
 ConsoleStrategy &Platform::createConsole() noexcept
 {
-#ifdef _WIN32
+#if defined(TV_BARE_METAL)
+    auto &io = StdioCtl::getInstance();
+    TerminalDisplay *display;
+    #if !defined(TV_BARE_METAL_DISPLAY_TERMINAL)
+        display = new BareMetalDisplay(io);
+    #else
+        display = new AnsiDisplay<BareMetalDisplay>(io);
+    #endif
+    return BareMetalConsoleStrategy::create(io, displayBuf, *display, *new AnsiTerminalInput(io));
+#elif defined(_WIN32)
     return Win32ConsoleStrategy::create();
 #else
     auto &io = StdioCtl::getInstance();
@@ -861,7 +874,7 @@ ConsoleStrategy &Platform::createConsole() noexcept
 
 ## class Platform
 
-tvision/include/tvision/internal/platform.h:74
+tvision/include/tvision/internal/platform.h:76
 ```cpp
 class Platform
 {
@@ -1097,9 +1110,9 @@ private:
     static size_t eventCount;
     static BOOL getPendingEvent(TEvent &event, Boolean mouse) noexcept;
     static void readEvents() noexcept;
-#endif
+#endif // __BORLANDC__
 
-#else
+#else // !__FLAT__
 
     static ushort *getColorAddr( ushort offset = 0 );
     static ushort *getMonoAddr( ushort offset = 0 );
@@ -1121,7 +1134,7 @@ private:
     static ushort monoSel;
     static ushort biosSel;
 
-#endif
+#endif // __FLAT__
 
 };
 ```
@@ -1285,7 +1298,6 @@ GCC - основной компилятор для железа (может бы
 tvision/include/tvision/internal/platform.h:24
 ```cpp
     virtual TPoint getScreenSize() noexcept { return {}; }
-    virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
 ```
 
 Реализация для `NcursesDisplay` возвращает размер экрана, получаемый через функцию [getmaxyx](https://www.opennet.ru/man.shtml?topic=getmaxyx&category=3&russian=1).
@@ -1326,7 +1338,6 @@ void Win32Display::reloadScreenInfo() noexcept
 tvision/include/tvision/internal/platform.h:25
 ```cpp
     virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
-    virtual void clearScreen() noexcept {}
 ```
 
 Реализация для `NcursesDisplay` возвращает размер курсора при помощи функции [curs_set](https://pubs.opengroup.org/onlinepubs/7908799/xcurses/curs_set.html).
@@ -1372,7 +1383,6 @@ int Win32Display::getCaretSize() noexcept
 tvision/include/tvision/internal/platform.h:26
 ```cpp
     virtual void clearScreen() noexcept {}
-    virtual ushort getScreenMode() noexcept { return 0; }
 ```
 
 Реализация для `NcursesDisplay` очищает экран при помощи вызова [wclear](https://www.opennet.ru/man.shtml?topic=wclear&category=3&russian=1).
@@ -1380,7 +1390,6 @@ tvision/include/tvision/internal/platform.h:26
 tvision/source/platform/ncurdisp.cpp:79
 ```cpp
 void NcursesDisplay::clearScreen() noexcept { wclear(stdscr); }
-void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept { wmove(stdscr, y, x); }
 ```
 
 Реализация для `Win32Display` очищает экран заполнением атрибутом 0x07 (белый на черном фоне) и символом пробела при помощи функций
@@ -1409,7 +1418,6 @@ void Win32Display::clearScreen() noexcept
 tvision/include/tvision/internal/platform.h:27
 ```cpp
     virtual ushort getScreenMode() noexcept { return 0; }
-    virtual void reloadScreenInfo() noexcept {}
 ```
 
 Реализации для `NcursesDisplay` и для `Win32Display` не реализуют данный метод самостоятельно, а наследуют реализацию из класса `TerminalDisplay`:
@@ -1609,7 +1617,6 @@ TermCap TerminalDisplay::getCapabilities() noexcept
 tvision/include/tvision/internal/platform.h:28
 ```cpp
     virtual void reloadScreenInfo() noexcept {}
-    virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept {}
 ```
 
 tvision/source/platform/ncurdisp.cpp:47
@@ -1657,7 +1664,6 @@ void Win32Display::reloadScreenInfo() noexcept
 tvision/include/tvision/internal/platform.h:29
 ```cpp
     virtual void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/) noexcept {}
-    virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept {};
 ```
 
 tvision/source/platform/ncurdisp.cpp:128
@@ -1714,13 +1720,11 @@ tvision/include/tvision/internal/ansidisp.h:142
 tvision/include/tvision/internal/platform.h:30
 ```cpp
     virtual void lowlevelMoveCursor(uint /*x*/, uint /*y*/) noexcept {};
-    virtual void lowlevelMoveCursorX(uint x, uint y) noexcept { lowlevelMoveCursor(x, y); }
 ```
 
 tvision/source/platform/ncurdisp.cpp:80
 ```cpp
 void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept { wmove(stdscr, y, x); }
-void NcursesDisplay::lowlevelFlush() noexcept { wrefresh(stdscr); }
 ```
 
 tvision/source/platform/win32con.cpp:348
@@ -1756,7 +1760,6 @@ tvision/include/tvision/internal/ansidisp.h:144
 tvision/include/tvision/internal/platform.h:31
 ```cpp
     virtual void lowlevelMoveCursorX(uint x, uint y) noexcept { lowlevelMoveCursor(x, y); }
-    virtual void lowlevelCursorSize(int /*size*/) noexcept {};
 ```
 
 Для `AnsiDisplay` производится оптимизация:
@@ -1784,7 +1787,6 @@ tvision/include/tvision/internal/ansidisp.h:146
 tvision/include/tvision/internal/platform.h:32
 ```cpp
     virtual void lowlevelCursorSize(int /*size*/) noexcept {};
-    virtual void lowlevelFlush() noexcept {};
 ```
 
 tvision/source/platform/ncurdisp.cpp:83
@@ -1828,25 +1830,11 @@ void Win32Display::lowlevelCursorSize(int size) noexcept
 tvision/include/tvision/internal/platform.h:33
 ```cpp
     virtual void lowlevelFlush() noexcept {};
-    virtual bool screenChanged() noexcept { return false; }
 ```
 
 tvision/source/platform/ncurdisp.cpp:81
 ```cpp
 void NcursesDisplay::lowlevelFlush() noexcept { wrefresh(stdscr); }
-
-void NcursesDisplay::lowlevelCursorSize(int size) noexcept
-{
-/* The caret is the keyboard cursor. If size is 0, the caret is hidden. The
- * other possible values are from 1 to 100, theoretically, and represent the
- * percentage of the character cell the caret fills.
- * https://docs.microsoft.com/en-us/windows/console/console-cursor-info-str
- *
- * ncurses supports only three levels: invisible (0), normal (1) and
- * very visible (2). They don't make a difference in all terminals, but
- * we can try mapping them to the values requested by Turbo Vision. */
-    curs_set(size > 0 ? size == 100 ? 2 : 1 : 0); // Implies refresh().
-}
 ```
 
 tvision/source/platform/win32con.cpp:354
@@ -1879,16 +1867,6 @@ tvision/include/tvision/internal/ansidisp.h:148
 tvision/include/tvision/internal/platform.h:34
 ```cpp
     virtual bool screenChanged() noexcept { return false; }
-};
-
-class InputStrategy : public EventSource
-{
-public:
-
-    InputStrategy(SysHandle aHandle) noexcept :
-        EventSource(aHandle)
-    {
-    }
 ```
 
 tvision/source/platform/termdisp.cpp:154
