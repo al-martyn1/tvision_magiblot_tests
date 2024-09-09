@@ -1,3 +1,4 @@
+@call :DO_GIT_JOB %1 %~dp0\arm_none_eabi_crt_stub
 @call :DO_GIT_JOB %1 %~dp0\marty_decimal
 @call :DO_GIT_JOB %1 %~dp0\sfmt
 @call :DO_GIT_JOB %1 %~dp0\tvision

@@ -22,18 +22,18 @@ include(.cmake/common.cmake)
 if(STM32)
     set(TV_BARE_METAL ON)
     set(TV_NO_NCURSES ON)
-    set(TV_BARE_METAL_TERMINAL ON)
+    set(TV_BARE_METAL_DISPLAY_TERMINAL ON)
     set(TV_NO_FILESYSTEM 1)
     set(TV_NO_LOCALE_SUPPORT 1)
     fw_stm32_setup_mcu_options()
     set(TV_MCU_COMPILE_DEFINITIONS ${MCU_COMPILE_DEFINITIONS})
     set(TV_MCU_COMPILE_OPTIONS     ${MCU_COMPILE_OPTIONS})
     set(TV_MCU_LINK_OPTIONS        ${MCU_LINK_OPTIONS})
+    add_compile_definitions(${MCU_COMPILE_DEFINITIONS})
+    add_compile_options(${MCU_COMPILE_OPTIONS})
+    add_link_options(${MCU_LINK_OPTIONS})
 endif()
 
-if (NOT WIN32)
-    # add_compile_definitions(HAVE_STRNCASECMP) # TurboVision uses strnicmp, which is non-standard
-endif()
 
 # set(TV_OPTIMIZE_BUILD  OFF)
 set(TV_REDUCE_APP_SIZE ON)
@@ -54,6 +54,9 @@ endif()  # STM32
 
 
 # Подсасываем библиотеки
+if(STM32)
+    add_subdirectory("${LIB_ROOT}/arm_none_eabi_crt_stub")
+endif()
 add_subdirectory("${LIB_ROOT}/tvision")
 add_subdirectory("${LIB_ROOT}/sfmt")
 add_subdirectory("${LIB_ROOT}/umba")
@@ -68,8 +71,13 @@ set(CMAKE_C_EXTENSIONS Off)
 set(CMAKE_CXX_EXTENSIONS Off)
 
 
+set(COMMON_LIBS)
+list(APPEND COMMON_LIBS sfmt::sfmt umba::umba tvision::tvision)
+if(STM32)
+    list(APPEND COMMON_LIBS arm_none_eabi_crt_stub::arm_none_eabi_crt_stub)
+endif()
 
-set(COMMON_LIBS sfmt::sfmt umba::umba tvision::tvision)
+
 
 include_directories(${LIB_ROOT})
 
