@@ -131,7 +131,7 @@ inline char* ltoa(int64_t value, char *buf, int radix)
 #if !defined(_ATTR_FALLTHROUGH)
     #if __cplusplus < 201703L
         #define _ATTR_FALLTHROUGH    /* C++ < 0x17 */
-    #else 
+    #else
         #define _ATTR_FALLTHROUGH    [[fallthrough]];  /* C++ >= 0x17 */
     #endif
 #endif

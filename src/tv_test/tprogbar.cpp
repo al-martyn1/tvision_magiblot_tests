@@ -1,6 +1,6 @@
 /*=========================================================================
    This TProgressBar class expands on Mr. Perez's upload TPROGB.ZIP. This
-alternative lets you include the class definition without having to 
+alternative lets you include the class definition without having to
 modify it for each main process. The dialog box that contructs TProgressBar
 will be responsible for updating it. See the example in EXAMPLE.CPP. You'll
 also find instructions on how to include the source in your TV.LIB and simply
@@ -120,7 +120,7 @@ void TProgressBar::calcPercent() {
 
       // width change?
       if(width!=curWidth) {
-	 curWidth = width;          // save new width
+     curWidth = width;          // save new width
         }
     }
 }

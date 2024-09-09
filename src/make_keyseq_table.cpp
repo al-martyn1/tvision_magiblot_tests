@@ -14,7 +14,7 @@
 //
 #include "tvision/tv.h"
 
-// 
+//
 #include "tvision/ttypes.h"
 //
 #include "tvision/tkeys.h"
@@ -81,7 +81,7 @@ struct TerminalAsciiCharInfo
 // TerminalAsciiCharInfo занимает 2+2+2 - 6 байт, 128*6=768, + плюс какое-то место (но небольшое) займет дополнительный код
 
 // TrieNode - в минимальном варианте - занимает 12 байт
-// На 128 символов + 128 символов с нажатым Alt (ESC-префикс) - 12*256=3072 
+// На 128 символов + 128 символов с нажатым Alt (ESC-префикс) - 12*256=3072
 
 
 inline
@@ -124,7 +124,7 @@ const std::array<TerminalAsciiCharInfo, 128>& getTerminalAsciiCharInfo()
     , { 0x00,          0 ,       0 }  // 0x1D  GS   - group separator
     , { 0x00,          0 ,       0 }  // 0x1E  RS   - record separator
     , { 0x00,          0 ,       0 }  // 0x1F  US   - unit separator    kbCtrlMinus?
-    , { 0x39,          0 ,       0 }  // 0x20  space 
+    , { 0x39,          0 ,       0 }  // 0x20  space
     , { 0x02,    kbShift ,       0 }  // 0x21  ! + Shift
     , { 0x28,    kbShift ,       0 }  // 0x22  " + Shift
     , { 0x04,    kbShift ,       0 }  // 0x23  # + Shift
@@ -137,9 +137,9 @@ const std::array<TerminalAsciiCharInfo, 128>& getTerminalAsciiCharInfo()
     , { 0x09,    kbShift ,       0 }  // 0x2a  * + Shift
     , { 0x0D,    kbShift ,       0 }  // 0x2b  + + Shift
     , { 0x33,          0 ,       0 }  // 0x2c  ,
-    , { 0x0C,          0 ,       0 }  // 0x2d  - 
+    , { 0x0C,          0 ,       0 }  // 0x2d  -
     , { 0x34,          0 ,       0 }  // 0x2e  .
-    , { 0x35,          0 ,       0 }  // 0x2f  / 
+    , { 0x35,          0 ,       0 }  // 0x2f  /
     , { 0x0B,          0 ,       0 }  // 0x30  0
     , { 0x02,          0 ,       0 }  // 0x31  1
     , { 0x03,          0 ,       0 }  // 0x32  2
@@ -183,8 +183,8 @@ const std::array<TerminalAsciiCharInfo, 128>& getTerminalAsciiCharInfo()
     , { 0x2D,    kbShift ,       0 }  // 0x58  X  + Shift
     , { 0x15,    kbShift ,       0 }  // 0x59  Y  + Shift
     , { 0x2C,    kbShift ,       0 }  // 0x5a  Z  + Shift
-    , { 0x1A,          0 ,       0 }  // 0x5b  [  
-    , { 0x2B,          0 ,       0 }  // 0x5c  \  
+    , { 0x1A,          0 ,       0 }  // 0x5b  [
+    , { 0x2B,          0 ,       0 }  // 0x5c  \
     , { 0x1B,          0 ,       0 }  // 0x5d  ]
     , { 0x07,    kbShift ,       0 }  // 0x5e  ^  + Shift
     , { 0x0C,    kbShift ,       0 }  // 0x5f  _  + Shift
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
 {
 
     // auto key = TKey('A', kbCtrlShift);
-    //  
+    //
     // std::cout << key.code << "\n";
 
     // for(std::uint8_t c=32; c!=0x7F; ++c)
@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
     //      << "#else\n"
     //      << "    #define UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INIT(p)  , (p)\n"
     //      << "#endif\n\n";
-    //  
+    //
     // cout << "#if defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)\n"
     //      << "    #define UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INIT(l)\n"
     //      << "#else\n"
@@ -348,7 +348,7 @@ int main(int argc, char* argv[])
         else
             cout << ", ";
 
-        cout << "{ "; printTrieIndex(node.parentNodeIndex); cout << ", "; printTrieIndex(node.lookupChunkStartIndex); cout << ", "; printTrieIndex(node.lookupChunkSize); cout << ", "; printTrieIndex(node.childsIndex); 
+        cout << "{ "; printTrieIndex(node.parentNodeIndex); cout << ", "; printTrieIndex(node.lookupChunkStartIndex); cout << ", "; printTrieIndex(node.lookupChunkSize); cout << ", "; printTrieIndex(node.childsIndex);
         cout << ", "; printPayloadValue(node.payload);
 
 #if !defined(UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_DISABLE)
@@ -357,7 +357,7 @@ int main(int argc, char* argv[])
         cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_PAYLOAD_EXTRA_FIELD_INITIALIZER_LIST_INIT(0)";
 #endif
 
-        cout << ", " << node.token; 
+        cout << ", " << node.token;
 
 #if !defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)
         cout << " /*,*/ UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_INITIALIZER_LIST_INIT(" << node.level << ")";
@@ -386,11 +386,11 @@ int main(int argc, char* argv[])
 //     UMBA_TOKENIZER_PAYLOAD_FLAGS_TYPE    payloadExtra         ; // Пользовательские флаги или данные, влезает указатель
 // #endif
 //     UMBA_TOKENIZER_TOKEN_TYPE            token                ; // Токен или символ
-//  
+//
 // #if !defined(UMBA_TOKENIZER_TRIE_NODE_LEVEL_FIELD_DISABLE)
 //     UMBA_TOKENIZER_TRIE_INDEX_TYPE       level                ; // Нужно, чтобы делать красивый граф таблицы trie
 // #endif
-//  
+//
 // } umba_tokenizer_trie_node;
 
 
@@ -466,7 +466,7 @@ http://kbdlayout.info/kbdusx/scancodes
 
 tkeys.h
 
-ncursinp.cpp - таблицы 
+ncursinp.cpp - таблицы
 static constexpr KeyDownEvent fromNonPrintableAscii[32]
 static const const_unordered_map<ushort, KeyDownEvent> fromCursesKeyCode =
 

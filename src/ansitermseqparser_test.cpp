@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
         tvision::umba::ansiterm::ansiTermPrintKeyCode(umba::lout, keyCode, controlKeyState);
         umba::lout << ", ControlKeyState: ";
         //<< umba::omanip::hex << keyCode << ", ControlKeyState: ";
-        // << umba::omanip::hex << controlKeyState 
+        // << umba::omanip::hex << controlKeyState
         tvision::umba::ansiterm::ansiTermPrintControlKeyCode(umba::lout, controlKeyState);
         umba::lout << "\n";
 
@@ -80,7 +80,7 @@ int main(int argc, char* argv[])
         //     << "    .controlKeyState = ";
         // printConstants(out, ev.keyDown.controlKeyState, printControlKeyState);
 
-    
+
 
     return 0;
 }

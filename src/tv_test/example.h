@@ -39,7 +39,7 @@
 #define Uses_TScreen
 #define Uses_TVCodePage
 #define Uses_TEmbedApplication
- 
+
 #include <tvision/tv.h>
 
 #include "tprogbar.h"

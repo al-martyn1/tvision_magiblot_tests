@@ -2,25 +2,25 @@
 
 Базовый класс, он же "интерфейс" - `DisplayStrategy`. От него наследуется `TerminalDisplay`.
 От `TerminalDisplay` наследуются `NcursesDisplay` и `Win32Display`.
-`NcursesDisplay` и `Win32Display` используются или непосредственно, или в качестве базового для `AnsiDisplay` 
-(`AnsiDisplay<Win32Display>` / `AnsiDisplay<NcursesDisplay>`). Для `BareMetall` нужно делать `BareMetallDisplay`, 
-который ведёт себя аналогично - `BareMetallDisplay` умеет, например, отображать себя на графическом дисплее 
+`NcursesDisplay` и `Win32Display` используются или непосредственно, или в качестве базового для `AnsiDisplay`
+(`AnsiDisplay<Win32Display>` / `AnsiDisplay<NcursesDisplay>`). Для `BareMetall` нужно делать `BareMetallDisplay`,
+который ведёт себя аналогично - `BareMetallDisplay` умеет, например, отображать себя на графическом дисплее
 (через предоставляемые пользователем внешние функции сброса изображения на дисплей), а обёрнутый в `AnsiDisplay`
-(`AnsiDisplay<BareMetallDisplay>`) - умеет отображать себя на ANSI терминале (также через предоставляемую 
+(`AnsiDisplay<BareMetallDisplay>`) - умеет отображать себя на ANSI терминале (также через предоставляемую
 пользователем функцию записы в последовательный порт).
 
 
 ## Методы DisplayStrategy
 
- - `TPoint getScreenSize()` - возвращает размер экрана; 
+ - `TPoint getScreenSize()` - возвращает размер экрана;
  - `int getCaretSize()` - возвращает размер каретки, от 0 до 100, где 0 - каретка выключена. По факту используются значения 0, 1, 100.
  - `void clearScreen()` - AnsiDisplay переопределяет.
- - `ushort getScreenMode()` - 
- - `void reloadScreenInfo()` - 
+ - `ushort getScreenMode()` -
+ - `void reloadScreenInfo()` -
  - `void lowlevelWriteChars(TStringView /*chars*/, TColorAttr /*attr*/)` - AnsiDisplay переопределяет.
  - `void lowlevelMoveCursor(uint /*x*/, uint /*y*/)` - AnsiDisplay переопределяет.
  - `void lowlevelMoveCursorX(uint x, uint y)` - AnsiDisplay переопределяет.
- - `void lowlevelCursorSize(int /*size*/)` - 
+ - `void lowlevelCursorSize(int /*size*/)` -
  - `void lowlevelFlush()` - AnsiDisplay переопределяет.
  - `bool screenChanged()` - нужно вернуть false - размер окна в MCU не меняется.
 
@@ -33,15 +33,15 @@ GCC - основной компилятор для железа (может бы
 
 Для GCC к реализации методов добавляем `attribute weak` - чтобы пользователь мог переопределить реализацию.
 
-Доплнительно реализацию каждого метода обкладываем ifdef'ами вида `TV_BARE_METAL_DISPLAY_method_name_IMPL_DISABLE` - 
+Доплнительно реализацию каждого метода обкладываем ifdef'ами вида `TV_BARE_METAL_DISPLAY_method_name_IMPL_DISABLE` -
 для того, чтобы можно было удалить дефолтную реализацию из библиотеки под корень, если что-то пойдёт не так.
 
-`TV_BARE_METAL_DISPLAY_TERMINAL` - определяем, если нам нужна реализация ANSI-терминала поверх `BareMetallDisplay`, 
+`TV_BARE_METAL_DISPLAY_TERMINAL` - определяем, если нам нужна реализация ANSI-терминала поверх `BareMetallDisplay`,
 а не сам `BareMetallDisplay`.
 
 **getScreenSize** - будет возвращать значение, которое сохранено вызовом reloadScreenInfo.
 
-**reloadScreenInfo** - `TV_BARE_METAL_DISPLAY_SIZE_WIDTH`=80/132, `TV_BARE_METAL_DISPLAY_SIZE_HEIGHT`=25/40, 
+**reloadScreenInfo** - `TV_BARE_METAL_DISPLAY_SIZE_WIDTH`=80/132, `TV_BARE_METAL_DISPLAY_SIZE_HEIGHT`=25/40,
 `TV_BARE_METAL_DISPLAY_SIZE_80_25`, `TV_BARE_METAL_DISPLAY_SIZE_132_40`, `TV_BARE_METAL_DISPLAY_SIZE_CUSTOM`
 
 **getScreenMode** - тырим из `TerminalDisplay`, только без `getFontSize`.
@@ -137,10 +137,10 @@ GCC - основной компилятор для железа (может бы
 
 
 Классы, производные от `TerminalDisplay` должны вызывать `initCapabilities()` в конструкторе. `initCapabilities()`, в свою очередь, вызывает `getCapabilities()`, которая на основании
-переменных окружения настраивает количество цветов терминала (**тут надо переделать** - добавить условную компиляцию для `TV_BARE_METAL` и избавится от переменных окружения, 
+переменных окружения настраивает количество цветов терминала (**тут надо переделать** - добавить условную компиляцию для `TV_BARE_METAL` и избавится от переменных окружения,
 также надо сделать не прямое сравнение, а поиск подстрок - так, переменная `TERM` в Debian консоли возвращает строку "xterm-256color", а переменная `COLORTERM` - пуста).
 
-Если не получается настроить при помощи переменных окружения, вызывается метод `virtual int TerminalDisplay::getColorCount() noexcept` - `BareMetallDisplay` должен его переопределять. 
+Если не получается настроить при помощи переменных окружения, вызывается метод `virtual int TerminalDisplay::getColorCount() noexcept` - `BareMetallDisplay` должен его переопределять.
 Версия для `TV_BARE_METAL` - 16 цветов, если не задано `TV_BARE_METAL_TRUE_COLOR`.
 
 Также в `TerminalDisplay::getScreenMode()` вызывается `io.getFontSize()` - не очень пока понятно, зачем.
@@ -211,7 +211,7 @@ GCC - основной компилятор для железа (может бы
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/source/platform/win32con.cpp#`void Win32Display::lowlevelCursorSize(int size) noexcept`-{}
 
-Для `AnsiDisplay` ничего не делается, но вообще-то команды такие есть в протоколе, как минимум, показать и спрятать 
+Для `AnsiDisplay` ничего не делается, но вообще-то команды такие есть в протоколе, как минимум, показать и спрятать
 каретку - **надо доделать** ([CSI ?25l/CSI ?25h](https://ru.wikipedia.org/wiki/%D0%A3%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%D1%89%D0%B8%D0%B5_%D0%BF%D0%BE%D1%81%D0%BB%D0%B5%D0%B4%D0%BE%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8_ANSI)).
 
 

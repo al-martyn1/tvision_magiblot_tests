@@ -3,7 +3,7 @@
 
 /* Include the commented directives above if you want to implement this
    in your TV.LIB. Don't forget the #endif at the end of this file! To
-   utilize "#define Uses_TProgressBar" put the follow directives in TV.H, 
+   utilize "#define Uses_TProgressBar" put the follow directives in TV.H,
    after #if defined( Uses_TButton ) would be a good place.
 
 #if defined( Uses_TProgressBar )
@@ -11,10 +11,10 @@
 #define __INC_DIALOGS_H
 #endif
 
-   After uncommenting the top two directives of this header file and the 
-   #endif at the end of this header file copy the contents of this file to 
-   the DIALOGS.H file in TVISION\INCLUDE. Put it before the last set of 
-   directives or to be safe somewhere in the middle between "#define Uses_*" 
+   After uncommenting the top two directives of this header file and the
+   #endif at the end of this header file copy the contents of this file to
+   the DIALOGS.H file in TVISION\INCLUDE. Put it before the last set of
+   directives or to be safe somewhere in the middle between "#define Uses_*"
    blocks. Don't forget to make a backup of DIALOGS.H if you make mistakes.
 
    In MAKEFILE. in \TVISION\SOURCE edit the OBJS = statement to include
@@ -22,9 +22,9 @@
    TLIB (easier).
 
    To comiple individually and use try:
-	 bcc -c -P -O1 -ml -I<include dirs> -n<obj dirs> tprogbar.cpp
-	    + add "-Y -Vs -B" for overlay version of TV.
-	 tlib tv.lib /0 +TPROGBAR
+     bcc -c -P -O1 -ml -I<include dirs> -n<obj dirs> tprogbar.cpp
+        + add "-Y -Vs -B" for overlay version of TV.
+     tlib tv.lib /0 +TPROGBAR
 
    For example:
          bcc -c -P -O1 -kl -I\BC\INCLUDE;\BC\TVISION\INCLUDE tprogbar.cpp
@@ -47,8 +47,8 @@ public:
    virtual TPalette& getPalette() const;
    virtual void update(unsigned long aProgress);
 
-   inline unsigned long getTotal();	// get the maximum iteration
-   inline unsigned long getProgress();	// get the current iteration
+   inline unsigned long getTotal();    // get the maximum iteration
+   inline unsigned long getProgress();    // get the current iteration
 
    // change the percentage ( calls the update function )
    void setTotal(unsigned long newTotal); // set the maximum iteration
@@ -58,7 +58,7 @@ protected:
    char          backChar;   // background character
    unsigned long total;      // total iterations to complete 100 %
    unsigned long progress;   // current iteration value
-   char *        bar;	     // thermometer bar
+   char *        bar;         // thermometer bar
    unsigned int  dispLen;    // length of bar
    unsigned int  curPercent; // current percentage
    unsigned int  curWidth;

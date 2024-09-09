@@ -32,7 +32,7 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 не учитывать их и писать/читать в/из порт/а по своему усмотрению.
 
 Не хватает метода `read` - видимо, все просто берут дескриптор, и делают с ним, что хотят. Надо абстрагироватся от дескриптора,
-и работать через метод `read`. 
+и работать через метод `read`.
 
 Есть странные методы - `getSize` и `getFontSize`. Странные потому, что не очень понятно, почему они сюда засунуты.
 
@@ -62,7 +62,7 @@ Title: Заметки по портированию TurboVision (magiblot) на 
 
 В целом, для `TV_BARE_METAL` это не нужно.
 
-Добавляемая реализация метода `read` должна будет возвращать управление сразу, без блокировки, и возвращать то количество байт, 
+Добавляемая реализация метода `read` должна будет возвращать управление сразу, без блокировки, и возвращать то количество байт,
 которое доступно для чтения, или `0`, если в буфере ничего нет.
 
 
@@ -171,9 +171,9 @@ The base class of AnsiDisplay must be a derived of TerminalDisplay.
 
 #/*
 
- - `` - 
- - `` - 
- - `` - 
+ - `` -
+ - `` -
+ - `` -
     virtual TPoint getScreenSize() noexcept { return {}; }
     virtual int getCaretSize() noexcept { return 0; } // Range [0, 100].
     virtual void clearScreen() noexcept {}
@@ -287,22 +287,22 @@ class DisplayBuffer
     friend FlushScreenAlgorithm;
 
 
-## 
+##
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/terminal.h#``-{}
 
 
-## 
+##
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/#``-{}
 
 
-## 
+##
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/#``-{}
 
 
-## 
+##
 
 #!insert{nolineno,noKeepCutTags,filename,path} tvision/include/tvision/internal/#``-{}
 

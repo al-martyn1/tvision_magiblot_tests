@@ -15,7 +15,7 @@ build] In file included from C:/work/projects/firmware/UP_1023_CPU_Example/Lib/F
 [build]       |                                     ^~~~~~~~~
 [build] C:/work/projects/firmware/UP_1023_CPU_Example/Lib/Framework/Common/bitutils.h:9:1: note: 'std::allocator' is defined in header '<memory>'; did you forget to '#include <memory>'?
 
-При этом 
+При этом
 #include <memory>
 
 Явно было добавлено, и не помогло.
