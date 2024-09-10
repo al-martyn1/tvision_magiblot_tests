@@ -719,6 +719,18 @@ function(fw_add_target_options TARGET)
                 endif()
             endif()
 
+        elseif(${ARGV${index}} STREQUAL "SIZE")
+            if(STM32)
+                stm32_print_size_of_target(${TARGET})
+            else()
+            endif()
+
+        elseif(${ARGV${index}} STREQUAL "MAP")
+            if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+                target_link_options(${TARGET} PRIVATE "-Wl,-Map,${TARGET}.map")
+            else()
+            endif()
+
         elseif(${ARGV${index}} STREQUAL "HEX")
             if(STM32)
                 if(NOT DEFINED HEX_TARGET_OPTION_ALREADY)
