@@ -37,6 +37,7 @@ endif()
 
 # set(TV_OPTIMIZE_BUILD  OFF)
 set(TV_REDUCE_APP_SIZE ON)
+set(TV_USE_STATIC_RTL ON)
 set(TV_BUILD_USING_GPM OFF) # prevent message: (tvision) 'gpm' library requested but not found
 
 # Disable some warnings in TurboVision
