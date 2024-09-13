@@ -169,6 +169,9 @@ if(STM32)
 endif()
 
 
+add_subdirectory(examples)
+
+
 
 # add_executable(makerez ${EXAMPLES}/progba/makerez.cpp ${EXAMPLES}/progba/tprogbar.cpp ) # ${SRC_ROOT}/crt_stub.c
 # fw_add_target_options(makerez "UNICODE" "CONSOLE" "BIGOBJ"
