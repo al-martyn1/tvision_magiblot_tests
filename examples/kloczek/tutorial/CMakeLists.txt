@@ -1,15 +1,38 @@
 project(tvguid CXX)
 
 set(TVGUID_SOURCES 
-background.cc
-listbox.cc
-load.cc
-nomenus.cc
-splash.cc
-tvedit.cc
-tvgui.h
 )
 
+
+
+set(TARGET background)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+set(TARGET listbox)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+set(TARGET load)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+set(TARGET nomenus)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+set(TARGET splash)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
+
+
+set(TARGET tvedit)
+add_executable(${TARGET} ${TARGET}.cc  ${TVGUID_SOURCES} )
+target_link_libraries(${TARGET} PRIVATE "${COMMON_LIBS}")
 
 
 set(TARGET tvlife)
