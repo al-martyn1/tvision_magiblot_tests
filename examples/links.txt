@@ -1,1 +1,3 @@
 kloczek - https://github.com/kloczek/tvision
+vinibiavatti1 - https://github.com/vinibiavatti1/TuiCss/wiki/Examples
+Turbo Vision Tutorial - https://www.oocities.org/codeteacher/pas/pasl3007.html
