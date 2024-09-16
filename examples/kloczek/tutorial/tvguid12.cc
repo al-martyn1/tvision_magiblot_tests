@@ -1,7 +1,10 @@
+/*! \file
+    \brief Same as tvguid11 except for making the dialog modal
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID12 Demo Source File                 */
+/*   TVGUID12 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/
@@ -262,7 +265,7 @@ void readFile(const char *fileName)
 	std::ifstream fileToView(fileName);
 	if (!fileToView) {
 		std::cout << "Invalid file name..." << std::endl;
-		exit(1);
+		//exit(1);
 	} else {
 		char buf[maxLineLength];
 		while (lineCount < maxLines &&

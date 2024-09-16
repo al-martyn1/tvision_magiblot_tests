@@ -1,7 +1,10 @@
+/*! \file
+    \brief This shows how to redefine custom windows and how to instance them by using menu commands
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID04 Demo Source File                 */
+/*   TVGUID04 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/

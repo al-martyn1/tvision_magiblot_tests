@@ -1,7 +1,10 @@
+/*! \file
+    \brief This example shows how to create custom views and how to insert them in windows
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID05 Demo Source File                 */
+/*   TVGUID05 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/

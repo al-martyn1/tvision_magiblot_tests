@@ -1,7 +1,10 @@
+/*! \file
+    \brief Same as tvguid13 except for extra checkboxes, radiobuttons, and labels
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID14 Demo Source File                 */
+/*   TVGUID14 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/
@@ -290,7 +293,7 @@ void readFile(const char *fileName)
 	std::ifstream fileToView(fileName);
 	if (!fileToView) {
 		std::cout << "Invalid file name..." << std::endl;
-		exit(1);
+		//exit(1);
 	} else {
 		char buf[maxLineLength];
 		while (lineCount < maxLines &&

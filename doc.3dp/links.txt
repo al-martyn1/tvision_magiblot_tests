@@ -1,0 +1,2 @@
+ТУРБО ПАСКАЛЬ 6.0. TURBO VISION (на русском) - https://citforum.ru/programming/tv_doc/index.shtml
+Примеры онлайн (посмотреть HTML-код) - https://fossies.org/linux/rhtvision/examples/tutorial/tvguid09.cc

@@ -9,27 +9,21 @@ provided by Borland, the others are mine.
 File		Description
 -------------	-----------
 
-tvguid01.cc	the basic application: empty desktop, the default menu bar and
-		the default status line
+tvguid01.cc	the basic application: empty desktop, the default menu bar and the default status line
 
-tvguid02.cc	empty desktop, default menu bar and two commands in the
-		status line
+tvguid02.cc	empty desktop, default menu bar and two commands in the status line
 
-tvguid03.cc	empty desktop, commands both in the menu bar and in the status
-		line
+tvguid03.cc	empty desktop, commands both in the menu bar and in the status line
 
-tvguid04.cc	this shows how to redefine custom windows and how to instance
-		them by using menu commands
+tvguid04.cc	this shows how to redefine custom windows and how to instance them by using menu commands
 
-tvguid05.cc	this example shows how to create custom views and how to
-		insert them in windows
+tvguid05.cc	this example shows how to create custom views and how to insert them in windows
 
 tvguid06.cc	a basic text scrolling window, with imperfect draw method
 
 tvguid07.cc	same as tvguid06 except for improved draw method
 
-tvguid08.cc	same as tvguid07 except for scrolling interior using scroll
-		bars
+tvguid08.cc	same as tvguid07 except for scrolling interior using scroll bars
 
 tvguid09.cc	same as tvguid08 except for multiple panes
 
@@ -41,13 +35,11 @@ tvguid12.cc	same as tvguid11 except for making the dialog modal
 
 tvguid13.cc	same as tvguid12 except for extra buttons in dialog
 
-tvguid14.cc	same as tvguid13 except for extra checkboxes, radiobuttons,
-		and labels
+tvguid14.cc	same as tvguid13 except for extra checkboxes, radiobuttons, and labels
 
 tvguid15.cc	same as tvguid14 except for extra input line in dialog
 
-tvguid16.cc	same as tvguid15 except for saving and restoring dialog
-		contents
+tvguid16.cc	same as tvguid15 except for saving and restoring dialog contents
 
 basicMakefile	a makefile template showing how to write a makefile
 

@@ -1,7 +1,10 @@
+/*! \file
+    \brief A basic text scrolling window, with imperfect draw method
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID06 Demo Source File                 */
+/*   TVGUID06 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/
@@ -166,7 +169,7 @@ void readFile(const char *fileName)
 	std::ifstream fileToView(fileName);
 	if (!fileToView) {
 		std::cout << "Invalid file name..." << std::endl;
-		exit(1);
+		// exit(1);
 	} else {
 		char buf[maxLineLength];
 		while (lineCount < maxLines &&

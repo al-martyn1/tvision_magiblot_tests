@@ -1,7 +1,10 @@
+/*! \file
+    \brief The basic application: empty desktop, the default menu bar and the default status line
+*/
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*! \file \brief TVGUID01 Demo Source File                 */
+/*   TVGUID01 Demo Source File                             */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/
