@@ -1,5 +1,5 @@
-/*
- * TVision example: how to handle dialogs without menu bar and status line
+/*! \file
+ * \brief TVision example: how to handle dialogs without menu bar and status line
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

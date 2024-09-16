@@ -1,5 +1,5 @@
-/*
- * TVision example: a simple text editor
+/*! \file
+ * \brief TVision example: a simple text editor
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

@@ -151,7 +151,7 @@ public:
 
 Реализация `UNIX`:
 
-tvision/source/platform/stdioctl.cpp:107
+tvision/source/platform/stdioctl.cpp:131
 ```cpp
 TPoint StdioCtl::getSize() const noexcept
 {
@@ -172,7 +172,7 @@ TPoint StdioCtl::getSize() const noexcept
 }
 ```
 
-tvision/source/platform/stdioctl.cpp:125
+tvision/source/platform/stdioctl.cpp:149
 ```cpp
 TPoint StdioCtl::getFontSize() const noexcept
 {
@@ -203,7 +203,7 @@ TPoint StdioCtl::getFontSize() const noexcept
 
 Реализация `WIN32`:
 
-tvision/source/platform/stdioctl.cpp:359
+tvision/source/platform/stdioctl.cpp:383
 ```cpp
 TPoint StdioCtl::getSize() const noexcept
 {
@@ -218,7 +218,7 @@ TPoint StdioCtl::getSize() const noexcept
 }
 ```
 
-tvision/source/platform/stdioctl.cpp:371
+tvision/source/platform/stdioctl.cpp:395
 ```cpp
 TPoint StdioCtl::getFontSize() const noexcept
 {
@@ -305,7 +305,7 @@ public:
 
 Реализации:
 
-tvision/source/platform/win32con.cpp:195
+tvision/source/platform/win32con.cpp:198
 ```cpp
 void Win32Input::cursorOn() noexcept
 {
@@ -315,7 +315,7 @@ void Win32Input::cursorOn() noexcept
 }
 ```
 
-tvision/source/platform/win32con.cpp:202
+tvision/source/platform/win32con.cpp:205
 ```cpp
 void Win32Input::cursorOff() noexcept
 {
@@ -548,6 +548,8 @@ protected:
 
     ~AnsiDisplayBase();
 
+    void flushAuto();
+
     void clearAttributes() noexcept;
     void clearScreen() noexcept;
 
@@ -561,7 +563,7 @@ protected:
 
 ### template<class DisplayBase> class AnsiDisplay : public DisplayBase, public AnsiDisplayBase
 
-tvision/include/tvision/internal/ansidisp.h:126
+tvision/include/tvision/internal/ansidisp.h:128
 ```cpp
 template<class DisplayBase>
 class AnsiDisplay : public DisplayBase, public AnsiDisplayBase
@@ -957,7 +959,7 @@ public:
 
 ## class DisplayBuffer
 
-tvision/include/tvision/internal/dispbuff.h:21
+tvision/include/tvision/internal/dispbuff.h:22
 ```cpp
 class DisplayBuffer
 {
@@ -977,8 +979,10 @@ class DisplayBuffer
     int newCaretSize {0};
 
     bool limitFPS;
-    std::chrono::microseconds flushDelay {};
-    std::chrono::time_point<std::chrono::steady_clock> lastFlush {};
+    // std::chrono::microseconds flushDelay {};
+    // std::chrono::time_point<std::chrono::steady_clock> lastFlush {};
+    TTimePoint flushDelay = 0;
+    TTimePoint lastFlush  = 0;
 
     static DisplayBuffer *instance;
 #ifdef _WIN32
@@ -1025,7 +1029,7 @@ public:
 
 ## class THardwareInfo
 
-tvision/include/tvision/hardware.h:44
+tvision/include/tvision/hardware.h:48
 ```cpp
 class THardwareInfo
 {
@@ -1035,7 +1039,10 @@ public:
     THardwareInfo() noexcept;
     ~THardwareInfo();
 
-    static uint32_t getTickCount() noexcept;
+    using TTimePoint = tvision::TTimePoint;
+
+    static TTimePoint getTickCount() noexcept;
+    static TTimePoint getTickCountMs() noexcept;
 
 #if defined( __FLAT__ )
 
@@ -1314,7 +1321,7 @@ TPoint NcursesDisplay::getScreenSize() noexcept
 
 Реализация для `Win32Display` возвращает полученный и сохранённый в методе `reloadScreenInfo()` размер. `io` - член класса `TerminalDisplay` типа `StdioCtl` - хранящего хэндлы IO-потоков консоли.
 
-tvision/source/platform/win32con.cpp:287
+tvision/source/platform/win32con.cpp:290
 ```cpp
 TPoint Win32Display::getScreenSize() noexcept
 {
@@ -1322,7 +1329,7 @@ TPoint Win32Display::getScreenSize() noexcept
 }
 ```
 
-tvision/source/platform/win32con.cpp:257
+tvision/source/platform/win32con.cpp:260
 ```cpp
 void Win32Display::reloadScreenInfo() noexcept
 {
@@ -1364,7 +1371,7 @@ int NcursesDisplay::getCaretSize() noexcept
 
 См. описание структуры [CONSOLE_CURSOR_INFO](https://learn.microsoft.com/ru-ru/windows/console/console-cursor-info-str).
 
-tvision/source/platform/win32con.cpp:292
+tvision/source/platform/win32con.cpp:295
 ```cpp
 int Win32Display::getCaretSize() noexcept
 {
@@ -1395,7 +1402,7 @@ void NcursesDisplay::clearScreen() noexcept { wclear(stdscr); }
 Реализация для `Win32Display` очищает экран заполнением атрибутом 0x07 (белый на черном фоне) и символом пробела при помощи функций
 [FillConsoleOutputAttribute](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputattribute) / [FillConsoleOutputCharacterA](https://learn.microsoft.com/ru-ru/windows/console/fillconsoleoutputcharacter).
 
-tvision/source/platform/win32con.cpp:323
+tvision/source/platform/win32con.cpp:326
 ```cpp
 void Win32Display::clearScreen() noexcept
 {
@@ -1447,7 +1454,7 @@ ushort TerminalDisplay::getScreenMode() noexcept
 
 Возможные флаги:
 
-tvision/include/tvision/system.h:415
+tvision/include/tvision/system.h:414
 ```cpp
     enum videoModes
         {
@@ -1635,7 +1642,7 @@ void NcursesDisplay::reloadScreenInfo() noexcept
 }
 ```
 
-tvision/source/platform/win32con.cpp:257
+tvision/source/platform/win32con.cpp:260
 ```cpp
 void Win32Display::reloadScreenInfo() noexcept
 {
@@ -1680,7 +1687,7 @@ void NcursesDisplay::lowlevelWriteChars(TStringView chars, TColorAttr attr) noex
 }
 ```
 
-tvision/source/platform/win32con.cpp:336
+tvision/source/platform/win32con.cpp:339
 ```cpp
 void Win32Display::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept
 {
@@ -1695,18 +1702,39 @@ void Win32Display::lowlevelWriteChars(TStringView chars, TColorAttr attr) noexce
 }
 ```
 
-tvision/source/platform/ansidisp.cpp:95
+tvision/source/platform/ansidisp.cpp:119
 ```cpp
 void AnsiDisplayBase::lowlevelWriteChars( TStringView chars, TColorAttr attr,
                                           const TermCap &termcap ) noexcept
 {
     buf.reserve(256);
     buf.tail = convertAttributes(attr, lastAttr, termcap, buf.tail);
+
+    #ifndef TV_BARE_METAL
     buf.push(chars);
+    flushAuto();
+    #else
+    size_t szChunk  = 110;
+    size_t startPos = 0;
+    while( true /* startPos<chars.size() */ )
+    {
+        size_t rest = chars.size() - startPos;
+        if (!rest || rest>chars.size())
+            break;
+        size_t chunkSize = std::min(rest, szChunk);
+        buf.push(chars.substr(startPos, chunkSize));
+        flushAuto();
+        startPos += chunkSize;
+        chunkSize = 128;
+    }
+    #endif
+
+    // constexpr TStringView substr(size_t pos) const;
+    // constexpr TStringView substr(size_t pos, size_t n) const;
 }
 ```
 
-tvision/include/tvision/internal/ansidisp.h:142
+tvision/include/tvision/internal/ansidisp.h:144
 ```cpp
     void lowlevelWriteChars(TStringView chars, TColorAttr attr) noexcept override
         { AnsiDisplayBase::lowlevelWriteChars(chars, attr, TerminalDisplay::termcap); }
@@ -1727,7 +1755,7 @@ tvision/source/platform/ncurdisp.cpp:80
 void NcursesDisplay::lowlevelMoveCursor(uint x, uint y) noexcept { wmove(stdscr, y, x); }
 ```
 
-tvision/source/platform/win32con.cpp:348
+tvision/source/platform/win32con.cpp:351
 ```cpp
 void Win32Display::lowlevelMoveCursor(uint x, uint y) noexcept
 {
@@ -1736,17 +1764,18 @@ void Win32Display::lowlevelMoveCursor(uint x, uint y) noexcept
 }
 ```
 
-tvision/source/platform/ansidisp.cpp:109
+tvision/source/platform/ansidisp.cpp:155
 ```cpp
 void AnsiDisplayBase::lowlevelMoveCursor(uint x, uint y) noexcept
 {
     buf.reserve(32);
 //     buf.push('\r'); // Make dumps readable.
     bufWriteCSI2(y + 1, x + 1, 'H');
+    flushAuto();
 }
 ```
 
-tvision/include/tvision/internal/ansidisp.h:144
+tvision/include/tvision/internal/ansidisp.h:146
 ```cpp
     void lowlevelMoveCursor(uint x, uint y) noexcept override
         { AnsiDisplayBase::lowlevelMoveCursor(x, y); }
@@ -1764,16 +1793,17 @@ tvision/include/tvision/internal/platform.h:31
 
 Для `AnsiDisplay` производится оптимизация:
 
-tvision/source/platform/ansidisp.cpp:103
+tvision/source/platform/ansidisp.cpp:148
 ```cpp
 void AnsiDisplayBase::lowlevelMoveCursorX(uint x, uint) noexcept
 {
     // Optimized case where the cursor only moves horizontally.
     bufWriteCSI1(x + 1, 'G');
+    flushAuto();
 }
 ```
 
-tvision/include/tvision/internal/ansidisp.h:146
+tvision/include/tvision/internal/ansidisp.h:148
 ```cpp
     void lowlevelMoveCursorX(uint x, uint y) noexcept override
         { AnsiDisplayBase::lowlevelMoveCursorX(x, y); }
@@ -1805,7 +1835,7 @@ void NcursesDisplay::lowlevelCursorSize(int size) noexcept
 }
 ```
 
-tvision/source/platform/win32con.cpp:310
+tvision/source/platform/win32con.cpp:313
 ```cpp
 void Win32Display::lowlevelCursorSize(int size) noexcept
 {
@@ -1837,7 +1867,7 @@ tvision/source/platform/ncurdisp.cpp:81
 void NcursesDisplay::lowlevelFlush() noexcept { wrefresh(stdscr); }
 ```
 
-tvision/source/platform/win32con.cpp:354
+tvision/source/platform/win32con.cpp:357
 ```cpp
 void Win32Display::lowlevelFlush() noexcept
 {
@@ -1846,7 +1876,7 @@ void Win32Display::lowlevelFlush() noexcept
 }
 ```
 
-tvision/source/platform/ansidisp.cpp:116
+tvision/source/platform/ansidisp.cpp:163
 ```cpp
 void AnsiDisplayBase::lowlevelFlush() noexcept
 {
@@ -1855,7 +1885,7 @@ void AnsiDisplayBase::lowlevelFlush() noexcept
 }
 ```
 
-tvision/include/tvision/internal/ansidisp.h:148
+tvision/include/tvision/internal/ansidisp.h:150
 ```cpp
     void lowlevelFlush() noexcept override
         { AnsiDisplayBase::lowlevelFlush(); }
@@ -1880,7 +1910,7 @@ bool TerminalDisplay::screenChanged() noexcept
 }
 ```
 
-tvision/source/platform/win32con.cpp:273
+tvision/source/platform/win32con.cpp:276
 ```cpp
 bool Win32Display::screenChanged() noexcept
 {

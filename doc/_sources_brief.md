@@ -1,0 +1,61 @@
+# Brief Description for Project Sources
+
+
+ - **kloczek/demo/tvdemo1.cc** - 
+ - **kloczek/tutorial/background.cc** - TVision example: how to change the background pattern * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/listbox.cc** - TVision example: how to use the TListBox class * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/load.cc** - TVision example: how to create custom views * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/nomenus.cc** - TVision example: how to handle dialogs without menu bar and status line * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/splash.cc** - TVision example: how to show a dialog box at startup * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/tvedit.cc** - TVision example: a simple text editor * * Written by Sergio Sigala <sergio@sigala.it>
+ - **kloczek/tutorial/tvguid01.cc** - 
+ - **kloczek/tutorial/tvguid02.cc** - 
+ - **kloczek/tutorial/tvguid03.cc** - 
+ - **kloczek/tutorial/tvguid04.cc** - 
+ - **kloczek/tutorial/tvguid05.cc** - 
+ - **kloczek/tutorial/tvguid06.cc** - 
+ - **kloczek/tutorial/tvguid07.cc** - 
+ - **kloczek/tutorial/tvguid08.cc** - 
+ - **kloczek/tutorial/tvguid09.cc** - 
+ - **kloczek/tutorial/tvguid10.cc** - 
+ - **kloczek/tutorial/tvguid11.cc** - 
+ - **kloczek/tutorial/tvguid12.cc** - 
+ - **kloczek/tutorial/tvguid13.cc** - 
+ - **kloczek/tutorial/tvguid14.cc** - 
+ - **kloczek/tutorial/tvguid15.cc** - 
+ - **kloczek/tutorial/tvguid16.cc** - 
+ - **kloczek/tutorial/tvlife.cc** - TVision example: the classic life example * * Written by Sergio Sigala <sergio@sigala.it> * * The mouse may be used to edit the patterns within the life window. * Clicking with the left button inside the life window will cause a dot to * appear at the cursor location.  Clicking with the right mouse button will * remove the dot.  This allows the user to create his/her own patterns.
+ - **kloczek/tutorial/validator.cc** - TVision example: how to use range validators in input lines * * Written by Sergio Sigala <sergio@sigala.it>
+ - **ansitermseqparser_test.cpp** - 
+ - **make_keyseq_table.cpp** - 
+ - **tv_test/example.cpp** - 
+
+ - **kloczek/demo/ascii.cc** - 
+ - **kloczek/demo/ascii.h** - 
+ - **kloczek/demo/calc.cc** - 
+ - **kloczek/demo/calc.h** - 
+ - **kloczek/demo/calendar.cc** - 
+ - **kloczek/demo/calendar.h** - 
+ - **kloczek/demo/demohelp_manual.h** - 
+ - **kloczek/demo/fileview.cc** - 
+ - **kloczek/demo/fileview.h** - 
+ - **kloczek/demo/gadgets.cc** - 
+ - **kloczek/demo/gadgets.h** - 
+ - **kloczek/demo/mousedlg.cc** - 
+ - **kloczek/demo/mousedlg.h** - 
+ - **kloczek/demo/puzzle.cc** - 
+ - **kloczek/demo/puzzle.h** - 
+ - **kloczek/demo/tvcmds.h** - 
+ - **kloczek/demo/tvdemo.h** - 
+ - **kloczek/demo/tvdemo2.cc** - 
+ - **kloczek/demo/tvdemo3.cc** - 
+ - **kloczek/tutorial/README** - 
+ - **kloczek/tutorial/tvgui.h** - 
+ - **ansitermseqtriegen.cpp** - 
+ - **ansitermseqtriegraphgen.cpp** - 
+ - **crt_stub.c** - 
+ - **tv_for_bm/stdioctl.cpp** - 
+ - **tv_test/example.h** - 
+ - **tv_test/tprogbar.cpp** - 
+ - **tv_test/tprogbar.h** - 
+

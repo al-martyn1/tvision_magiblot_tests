@@ -1,5 +1,5 @@
-/*
- * TVision example: the classic life example
+/*! \file
+ * \brief TVision example: the classic life example
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  *

@@ -1,5 +1,5 @@
-/*
- * TVision example: how to create custom views
+/*! \file
+ * \brief TVision example: how to create custom views
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

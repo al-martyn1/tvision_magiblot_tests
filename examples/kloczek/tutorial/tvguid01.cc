@@ -1,7 +1,7 @@
 /*---------------------------------------------------------*/
 /*                                                         */
 /*   Turbo Vision 1.0                                      */
-/*   TVGUID01 Demo Source File                             */
+/*! \file \brief TVGUID01 Demo Source File                 */
 /*   Copyright (c) 1991 by Borland International           */
 /*                                                         */
 /*---------------------------------------------------------*/

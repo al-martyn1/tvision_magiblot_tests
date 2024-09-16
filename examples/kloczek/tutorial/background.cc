@@ -1,5 +1,5 @@
-/*
- * TVision example: how to change the background pattern
+/*! \file
+ * \brief TVision example: how to change the background pattern
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

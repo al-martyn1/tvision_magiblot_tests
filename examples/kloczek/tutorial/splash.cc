@@ -1,5 +1,5 @@
-/*
- * TVision example: how to show a dialog box at startup
+/*! \file
+ * \brief TVision example: how to show a dialog box at startup
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

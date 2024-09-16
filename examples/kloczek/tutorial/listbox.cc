@@ -1,5 +1,5 @@
-/*
- * TVision example: how to use the TListBox class
+/*! \file
+ *  \brief TVision example: how to use the TListBox class
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */

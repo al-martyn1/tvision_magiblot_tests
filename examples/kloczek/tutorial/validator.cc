@@ -1,5 +1,5 @@
-/*
- * TVision example: how to use range validators in input lines
+/*! \file
+ * \brief TVision example: how to use range validators in input lines
  *
  * Written by Sergio Sigala <sergio@sigala.it>
  */
